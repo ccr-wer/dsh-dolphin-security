@@ -1,0 +1,7 @@
+html[data-dsh-skin="harbor"] [id="root"] {
+  background: none;
+}
+
+html[data-dsh-skin="harbor"] [id="root"] { background: transparent; }
+
+html[data-dsh-skin="harbor"] body { --shiki-background: var(--dsw-alias-markdown-code-block); }

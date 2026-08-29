@@ -1,0 +1,1 @@
+const s="@deepseek-ai/dsh-session-telemetry-otel",n="session-telemetry-otel-invariant",i=["invariants"],t=()=>{},o=e=>Promise.resolve(e.invariants.register(s,t));export{o as apply,i as inject,n as name};

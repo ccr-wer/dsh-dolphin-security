@@ -1,0 +1,1 @@
+const i=Object.freeze({kind:"plugin",plugin:"compact"});function t(n,e){return Object.freeze({...i,compactionId:n,...e===void 0?{}:{sourceCommandId:e}})}function c(n){return n.kind==="plugin"&&n.plugin===i.plugin}export{t as compactCheckpointSource,c as isCompactCheckpointSource};

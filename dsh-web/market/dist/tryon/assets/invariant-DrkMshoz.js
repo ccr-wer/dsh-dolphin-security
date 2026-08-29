@@ -1,0 +1,1 @@
+const n="@deepseek-ai/dsh-client-ui-input-trigger",e="client-ui-input-trigger-invariant",s=["invariants"],t=()=>{},r=i=>Promise.resolve(i.invariants.register(n,t));export{r as apply,s as inject,e as name};

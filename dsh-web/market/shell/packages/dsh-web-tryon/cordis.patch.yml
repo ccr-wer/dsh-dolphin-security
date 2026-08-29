@@ -1,0 +1,14 @@
+# market/tryon: the try-on host row.
+#
+# The row exists so the client half (dsh.client declaration) is read from a
+# composed plugin. The host half itself serves the skin-center v2 API from the
+# market's static skin assets — see packages/dsh-web-tryon/src/index.ts.
+- insert:
+    - id: web-tryon
+      name: '@dsh-web/tryon'
+- insert:
+    # market/tryon: the skin-center client half belongs in the client roster,
+    # which follows the composed plugin rows. Its node half is replaced by a
+    # no-op runtime module (boot.ts) — the v2 API is served by web-tryon.
+    - id: ui-skin-center
+      name: '@linxin666/dsh-client-ui-skin-center'

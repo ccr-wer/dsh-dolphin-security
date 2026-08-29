@@ -1,0 +1,5 @@
+# Bilingual-pair consistency record (docs/i18n.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with git hash-object.
+2026-08-25-miku-gameplay-unified-treats-economy.md: b8aa1291b60e11347784413540253401f769c868
+2026-08-25-miku-gameplay-unified-treats-economy.zh.md: 09d51630148dbed74c33d64688a490f714dae70a

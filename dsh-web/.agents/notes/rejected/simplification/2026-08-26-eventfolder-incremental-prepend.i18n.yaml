@@ -1,0 +1,5 @@
+# Bilingual-pair consistency record (docs/i18n.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with git hash-object.
+2026-08-26-eventfolder-incremental-prepend.md: 8f674f8d3bb056c0c9669bf0d8bbd46443fedd90
+2026-08-26-eventfolder-incremental-prepend.zh.md: 8d452b5fc8ff101be777e86feff0d5e7422488b5

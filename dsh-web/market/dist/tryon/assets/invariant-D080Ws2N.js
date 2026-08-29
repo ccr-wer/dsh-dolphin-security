@@ -1,0 +1,1 @@
+const s="@deepseek-ai/dsh-message-feedback",n="message-feedback-invariant",t=["invariants"],a=Object.assign(()=>{},{inject:["messageFeedback"]}),i=e=>Promise.resolve(e.invariants.register(s,a));export{i as apply,t as inject,n as name};

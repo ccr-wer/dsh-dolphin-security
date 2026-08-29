@@ -1,0 +1,19 @@
+node_modules/
+dist/
+
+# Derived from node_modules by scripts/assemble.ts.
+public/plugins/
+public/shell/
+src/generated/
+
+# Local scratch
+*.log
+.DS_Store
+
+# Built, not authored.
+build/
+dist/
+packages/*/lib/
+
+# Copied out of node_modules by scripts/build-v86.mjs; the BIOS beside them is vendored.
+public/v86/*.wasm

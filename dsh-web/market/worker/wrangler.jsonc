@@ -1,0 +1,25 @@
+{
+  "$schema": "../../../node_modules/wrangler/config-schema.json",
+  "name": "dsh-market",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-01",
+  "assets": {
+    "directory": "../dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/.well-known/*", "/", "/index.html"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dsh-market",
+      "database_id": "95f4e8ae-444a-46d0-98be-c367a9dbe6e8"
+    }
+  ],
+  "routes": [
+    { "pattern": "dsh-market.com", "custom_domain": true }
+  ],
+  "triggers": {
+    "crons": ["*/30 * * * *"]
+  },
+  "observability": { "enabled": true }
+}

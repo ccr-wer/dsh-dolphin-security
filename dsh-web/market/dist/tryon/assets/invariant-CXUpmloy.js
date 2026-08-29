@@ -1,0 +1,1 @@
+const t="@deepseek-ai/dsh-tool-subagent-control",s="tool-subagent-control-invariant",e=["invariants"],o=()=>{},a=n=>Promise.resolve(n.invariants.register(t,o));export{a as apply,e as inject,s as name};

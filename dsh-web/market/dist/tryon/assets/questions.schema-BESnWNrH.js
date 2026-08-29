@@ -1,0 +1,1 @@
+import{sessionIdSchema as a}from"./sessions.schema-CLLI6_-E.js";import{o,j as e,s}from"./schemas-BjdgLEE2.js";import"./session-search-BOHnX8ad.js";import"./json-schema-processors-6dmQcDt8.js";const r=o({answers:e(o({id:s(),selected:e(s()),custom:s().optional()}))}),c=o({sessionId:a,answer:r});export{r as askUserQuestionAnswerSchema,c as questionResponsePayloadSchema};

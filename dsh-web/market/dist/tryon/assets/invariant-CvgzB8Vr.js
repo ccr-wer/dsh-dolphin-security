@@ -1,0 +1,1 @@
+const n="@deepseek-ai/dsh-client-ui-agent-preset",i="client-ui-agent-preset-invariant",s=["invariants"],t=()=>{},a=e=>Promise.resolve(e.invariants.register(n,t));export{a as apply,s as inject,i as name};

@@ -1,0 +1,1 @@
+const e="@deepseek-ai/dsh-client-ui-permission-presets",n="client-ui-permission-presets-invariant",t=["invariants"],i=()=>{},r=s=>Promise.resolve(s.invariants.register(e,i));export{r as apply,t as inject,n as name};

@@ -1,0 +1,1 @@
+const i="@deepseek-ai/dsh-client-ui-workflow-run",t="client-ui-workflow-run-invariant",s=["invariants"],e=()=>{},o=n=>Promise.resolve(n.invariants.register(i,e));export{o as apply,s as inject,t as name};

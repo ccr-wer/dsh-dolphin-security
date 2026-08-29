@@ -1,0 +1,1 @@
+const n="@deepseek-ai/dsh-session-checkpoint-policy",e="session-checkpoint-policy-invariant",o=["invariants"],i=()=>{},t=s=>Promise.resolve(s.invariants.register(n,i));export{t as apply,o as inject,e as name};

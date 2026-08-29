@@ -1,0 +1,38 @@
+{
+  "name": "dsh-code-scan",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness 插件：为 Agent 增加 code_scan 工具，用 semgrep 扫描代码并输出按文件/行号/严重级别分组的中文报告",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "lib",
+    "cordis.patch.yml"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek",
+    "harness",
+    "semgrep",
+    "security",
+    "code-scan"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiaohuang-zaianlian/dsh-code-scan.git"
+  },
+  "homepage": "https://github.com/xiaohuang-zaianlian/dsh-code-scan#readme",
+  "bugs": {
+    "url": "https://github.com/xiaohuang-zaianlian/dsh-code-scan/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6"
+  }
+}

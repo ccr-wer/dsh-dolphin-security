@@ -1,0 +1,1 @@
+const r="@deepseek-ai/dsh-workflow-worker-thread",o="workflow-worker-thread-invariant",t=["invariants"],n=()=>{},s=e=>Promise.resolve(e.invariants.register(r,n));export{s as apply,t as inject,o as name};

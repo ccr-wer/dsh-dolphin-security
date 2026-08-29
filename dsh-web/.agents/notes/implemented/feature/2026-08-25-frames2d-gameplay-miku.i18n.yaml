@@ -1,0 +1,4 @@
+# Bilingual-pair consistency record: the git blob hash of each side as of the
+# last confirmed-consistent state (record with: git hash-object <file>).
+2026-08-25-frames2d-gameplay-miku.md: cfbb53e850d35287054562a7ef41a5dd11a00eac
+2026-08-25-frames2d-gameplay-miku.zh.md: b0e9afad014fb32858a2ea3f62370df35a958109

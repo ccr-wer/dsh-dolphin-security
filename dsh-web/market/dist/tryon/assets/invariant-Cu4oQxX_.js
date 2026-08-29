@@ -1,0 +1,1 @@
+const t="@deepseek-ai/dsh-tool-str-replace-editor",n="tool-str-replace-editor-invariant",o=["invariants"],s=()=>{},r=e=>Promise.resolve(e.invariants.register(t,s));export{r as apply,o as inject,n as name};

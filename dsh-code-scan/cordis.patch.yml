@@ -1,0 +1,5 @@
+# dsh bundle patch：把本插件插入 profile 的组合层。
+# 作用：dsh 启动时，往组合里加一行「加载 dsh-code-scan 这个插件」。
+- insert:
+    - id: code-scan
+      name: dsh-code-scan

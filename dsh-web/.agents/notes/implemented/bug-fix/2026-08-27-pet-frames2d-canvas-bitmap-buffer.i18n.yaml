@@ -1,0 +1,5 @@
+# Bilingual-pair consistency record (docs/i18n.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with git hash-object.
+2026-08-27-pet-frames2d-canvas-bitmap-buffer.md: 6eac6a25f156b5c0bde2add75507a06424be6eaf
+2026-08-27-pet-frames2d-canvas-bitmap-buffer.zh.md: ea4319ab70e0c4c7a09c187fd7d59c1b573c51f9

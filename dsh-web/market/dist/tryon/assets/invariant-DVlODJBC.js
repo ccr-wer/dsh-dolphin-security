@@ -1,0 +1,1 @@
+const t="@deepseek-ai/dsh-session-title-first-prompt-llm",e="session-title-first-prompt-llm-invariant",n=["invariants"],i=()=>{},o=s=>Promise.resolve(s.invariants.register(t,i));export{o as apply,n as inject,e as name};

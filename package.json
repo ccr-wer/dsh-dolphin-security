@@ -1,0 +1,11 @@
+{
+  "name": "dolphin",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Project Dolphin - 主动巡检型安全防御插件",
+  "scripts": {
+    "scan": "node dolphin-core.js",
+    "self-test": "node dolphin-core.js --mock"
+  }
+}

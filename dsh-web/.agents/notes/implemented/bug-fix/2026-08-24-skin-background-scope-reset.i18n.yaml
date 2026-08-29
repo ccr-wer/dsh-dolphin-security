@@ -1,0 +1,5 @@
+# Bilingual-pair consistency record (docs/i18n.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with git hash-object.
+2026-08-24-skin-background-scope-reset.md: b12480904c4f0e40ea0269cd12426d9799468a8c
+2026-08-24-skin-background-scope-reset.zh.md: 7453eb32eeb2baac6e8ab0d1b3ab8a0eb70512ea

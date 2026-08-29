@@ -1,0 +1,169 @@
+# The browser overlay: the last patch layer, applied after dsh-base and
+# dsh-web-app. Every row here exists because the shipped value names a host
+# capability the page cannot have — a listening socket, a dist directory on
+# disk, a native file dialog, an OS sandbox — and replaces it with the
+# browser's equivalent rather than turning the feature off.
+#
+# Replacing a row's plugin is disable-plus-insert, not a `name:` override: in
+# this patch dialect `name` is an assertion the target must already match, and a
+# mismatch skips the whole patch. So each swap disables the shipped row (keeping
+# it visible in `--dump-config`, and re-enablable by a user layer) and inserts
+# the browser row beside it.
+
+# ── rows whose plugin the browser replaces ──────────────────────────────────
+
+# The app-owned command line. Upstream parses `dsh web --port …` through
+# `cmdlineArgs`; there is no command line here, so a browser provider publishes
+# the same `webStartup` shape from the page URL.
+- id: web-startup
+  disabled: true
+
+# Upstream's `web-runtime` resolves the built frontend dist and mounts the
+# static-file fallback owner over it. The frontend is already loaded in this
+# page, so the browser runtime keeps only the parts that are still true: the
+# `webRuntime` values the trust fence reads, the model-visible surface prompt,
+# and the shell-visible `DSH_WEB_*` variables.
+- id: web-runtime
+  disabled: true
+
+# The plugin table. Upstream's node half hashes bundles on disk and serves them
+# over HTTP; the browser build ships them as static assets and mints blob URLs
+# for plugins installed at runtime.
+- id: modules
+  disabled: true
+
+# The Typert manifest loader. Upstream resolves each package's `./typert`
+# artifact on disk and imports it by file URL; the browser build resolves the
+# same set at assemble time and imports it through the bundler.
+- id: typert-loader
+  disabled: true
+
+# The OS process sandbox (Landlock on Linux, Seatbelt on macOS, a restricted
+# token on Windows) loads a native FFI binding. Its browser counterpart
+# enforces the same file-effect vocabulary through the shell's own guard.
+- id: sandbox
+  disabled: true
+
+# The model-facing bash tool, replaced by `browser:machine` — the row that
+# mounts whichever tools this session's machine actually has. See
+# `src/host/machine-tools.ts`.
+#
+# This disable belongs with that row and is written here for one reason: a
+# `disabled: true` in a plugin's own bundle layer is applied after the row has
+# already mounted, and by then `dsh-tool-bash` has registered its tool — the
+# loader reports the row as disabled while the model is still offered `bash`.
+# Disabling it from the overlay happens early enough to stop the row running at
+# all. The two are a pair: remove `src/host/machine-tools.ts` and this line
+# goes with it, or the session has no shell tool.
+- id: tool-bash
+  disabled: true
+
+# market/tryon: the client-side HMR and cordis-runner machinery waits for a
+# client 'modules' service the browser composition never provides, and neither
+# half is worth satisfying on a try-on shell — hot reload and the in-client
+# runner console are machine-side development surfaces. Disabling keeps the
+# boot audit clean and the shell chrome intact.
+- id: client-hmr
+  disabled: true
+- id: cordis-client-runner
+  disabled: true
+- id: ui-cordis
+  disabled: true
+
+- insert:
+    - id: web-startup-browser
+      name: 'browser:web-startup'
+
+    - id: web-runtime-browser
+      name: 'browser:web-runtime'
+      inject: [webStartup]
+      config:
+        surfaceContext: true
+
+    - id: modules-browser
+      name: 'browser:client-modules'
+
+    - id: typert-loader-browser
+      name: 'browser:typert-loader'
+      config:
+        packages: []
+
+    - id: sandbox-browser
+      name: 'browser:sandbox'
+
+
+# ── rows kept, with browser-appropriate values ──────────────────────────────
+
+# The model a session starts on.
+#
+# Upstream defaults to `deepseek-official`, which is right where someone has
+# installed dsh and is about to configure it. A page is opened, not installed:
+# the visitor has no account, no key, and no reason to get one before seeing
+# whether the thing works at all. So the default is a route that needs neither,
+# picked from the keyless roster generated below on three measured grounds.
+#
+# **Reachable without a third party.** Of the five keyless routes, only
+# OVHcloud and LLM7 answer a preflight from this origin with
+# `access-control-allow-origin: *`. The other three — OpenCode Zen among them —
+# publish no CORS headers, so every request to them is retried through the
+# proxy in Settings → Network, which is a stranger reading the whole
+# conversation. A default should not require that; the other routes are still
+# one click away for anyone who accepts it.
+#
+# **Stable under its own limit.** Both direct routes meter anonymous callers,
+# and they meter differently. OVHcloud says so on every response —
+# `x-ratelimit-limit-minute: 2` with `ratelimit-reset: 33` — so the worst case
+# is a bounded ~30s wait per model, and there are eleven other models to move
+# between. LLM7 hands out a single per-IP budget that, once spent, answers
+# `429 {"retry_after": 536}`: a nine-minute cliff rather than a short pause.
+# Bounded and dull beats fast and then gone.
+#
+# **Strongest at code of what is left.** `Qwen3-Coder-30B-A3B-Instruct` is the
+# code-specialised model in that set, with a 262144-token context and tool
+# calls and streaming both confirmed against the live endpoint. The larger
+# `Qwen3.5-397B-A17B` sits on the same route and would win on raw capability,
+# but it is also the one model whose anonymous pool kept answering 429 at 34s
+# spacing when every sibling served — so it loses on the second ground.
+#
+# What this still costs, measured and not hidden: two requests per minute per
+# model is a real ceiling, and a long agent turn will feel it. A user who wants
+# past it has every other provider one key away in Settings → Models.
+- id: agent-default-model
+  config:
+    provider: ovh-free
+    model: Qwen3-Coder-30B-A3B-Instruct
+
+# Whether this deployment can hand a path to something that will open it. On a
+# machine the answer is a desktop and `xdg-open`; here it is the Files panel,
+# and `xdg-open` in `src/shell/tools.ts` is what carries a path to it. The
+# gateway asks this question of the host once, at `describe`, and a surface that
+# heard `false` hides the affordance — so the honest answer is `true`, and the
+# thing that makes it true ships in the same commit.
+- id: api-gateway
+  config:
+    nativeOpen: true
+
+# The shipped roster lives beside the installed app; here it is seeded into the
+# virtual filesystem at a fixed deployment root. `includeUserRoot` keeps
+# `$DSH_HOME/.agent-presets` writable, which is what preset authoring uses.
+- id: agent-presets
+  config:
+    default: standard
+    includeUserRoot: true
+    roots:
+      - path: /opt/dsh/config/agent-presets
+        trust: system
+
+# ── rows whose backing capability does not exist in a page ──────────────────
+
+# Client-plugin hot reload stays mounted, as `dsh web` mounts it. Its node half
+# registers `/plugins/events` on the in-page server and is idle until a rebuild
+# watcher rewrites a bundle — which a static deployment has none of, so the row
+# costs an open event stream that never emits. Disabling it would be a
+# divergence bought for nothing.
+
+
+# `session-telemetry-otel` is deliberately NOT disabled here. Its shipped mode
+# is DISABLED, so it exports nothing unless a deployment opts in — and leaving
+# the row mounted keeps `--dump-config` and the plugin inventory honest about
+# what this build composes.
