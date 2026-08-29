@@ -1,0 +1,5 @@
+# Bilingual-pair consistency record (docs/i18n.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with git hash-object.
+2026-08-26-orca-link-mount-binding-scope.md: 261c2f4fe3678e4784ec4a319b38a6c69366b0d4
+2026-08-26-orca-link-mount-binding-scope.zh.md: 0aa214bbb4b50bfaacef3f53006abf1712ad374e

@@ -1,0 +1,1 @@
+const n="@deepseek-ai/dsh-subagent-spawn-in-process",a="subagent-spawn-in-process-invariant",t=["invariants"],e=()=>{},i=s=>Promise.resolve(s.invariants.register(n,e));export{i as apply,t as inject,a as name};

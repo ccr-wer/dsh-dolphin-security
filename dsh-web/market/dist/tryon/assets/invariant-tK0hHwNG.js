@@ -1,0 +1,1 @@
+const e="@deepseek-ai/dsh-session-persistence-jsonl",i="session-persistence-jsonl-invariant",t=["invariants"],n=()=>{},o=s=>Promise.resolve(s.invariants.register(e,n));export{o as apply,t as inject,i as name};

@@ -1,0 +1,5 @@
+# Bilingual-pair consistency record (docs/i18n.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with git hash-object.
+2026-08-25-orca-link-session-switch-latency.md: 74a8406941589439ea91aef9f969584f848f497e
+2026-08-25-orca-link-session-switch-latency.zh.md: 50e74091651f1e40b833dfce857d4df45736a445

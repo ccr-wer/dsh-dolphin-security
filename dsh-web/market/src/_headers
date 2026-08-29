@@ -1,0 +1,30 @@
+/manifest/*
+	Cache-Control: public, max-age=300
+	Access-Control-Allow-Origin: *
+
+/assets/*
+	Cache-Control: public, max-age=86400
+
+/tryon-assets/*
+	Cache-Control: public, max-age=86400
+
+/official-facade.js
+	Cache-Control: public, max-age=0, must-revalidate
+
+/manifest.js
+	Cache-Control: public, max-age=0, must-revalidate
+
+/styles.js
+	Cache-Control: public, max-age=0, must-revalidate
+
+/index.html
+	Cache-Control: public, max-age=0, must-revalidate
+
+/preview.html
+	Cache-Control: public, max-age=0, must-revalidate
+
+/robots.txt
+	Cache-Control: public, max-age=300
+
+/sitemap.xml
+	Cache-Control: public, max-age=300

@@ -1,0 +1,81 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# The deploy job needs to publish an artifact and mint an id-token for the
+# Pages deployment; nothing else in this workflow writes to the repository.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time, and the newest push wins.
+#
+# This used to refuse to cancel, on the theory that a half-published Pages site
+# is worse than a slightly stale one. That theory does not describe what these
+# actions do: `upload-pages-artifact` writes an artifact and `deploy-pages`
+# swaps it in with a single API call, so a run cancelled at any point either
+# never swapped or already finished — the live site is the previous version
+# either way. There is no half-published state to protect.
+#
+# What refusing did cost was real: a superseded commit's deploy held the queue
+# while the commit that replaced it waited behind it, so the slowest deploy on
+# `main` set the pace for every deploy after it. Cancelling means the site
+# tracks the newest push instead of the oldest unfinished one.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        # `npm run build` runs scripts/assemble.ts first, which derives the
+        # plugin roster, the client bundles, and the host module map from the
+        # installed @deepseek-ai packages and builds the plugins this repository
+        # ships.
+        run: npm run build
+
+      - name: Report the artifact size
+        run: du -sh dist
+
+      # This workflow builds and publishes; it does not verify. It used to boot
+      # the artifact in a real browser first, which meant installing Chromium
+      # and its system dependencies — the better part of the deploy's wall
+      # clock — to re-run a suite `ci.yml` runs on the same commit anyway.
+      #
+      # Both workflows trigger on the same push and run side by side, so that
+      # duplication bought less than it looked like it did: it delayed every
+      # deploy by a full browser run without gating anything CI was not already
+      # gating. The check lives in `ci.yml` now, and the trade is explicit —
+      # a deploy can publish before CI has finished failing, so a red CI on
+      # `main` means look at the site, not just the badge.
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

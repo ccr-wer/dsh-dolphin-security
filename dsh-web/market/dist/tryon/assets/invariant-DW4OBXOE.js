@@ -1,0 +1,1 @@
+const n="@deepseek-ai/dsh-fs-observation-policy",e="fs-observation-policy-invariant",o=["invariants"],i=()=>{},t=s=>Promise.resolve(s.invariants.register(n,i));export{t as apply,o as inject,e as name};

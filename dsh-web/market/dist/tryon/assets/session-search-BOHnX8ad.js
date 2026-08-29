@@ -1,0 +1,1 @@
+const c=20,_=240;function r(t,S){let n=0,o=0;for(const e of t){if(n===S)return t.slice(0,o);n++,o+=e.length}return t}export{c as SESSION_SEARCH_RESULT_LIMIT,_ as SESSION_SEARCH_SNIPPET_MAX_CODE_POINTS,r as truncateUnicodeCodePoints};

@@ -1,0 +1,31 @@
+{
+  "name": "dsh-plugin-hos-forge-v2",
+  "version": "1.0.0",
+  "description": "AI Native Cybersecurity Plugin for DSH CLI - MCP Integrated Version",
+  "main": "index.js",
+  "bin": {
+    "dsh-hos-forge": "./bin/cli.js"
+  },
+  "scripts": {
+    "start": "node bin/cli.js",
+    "test": "jest"
+  },
+  "keywords": [
+    "dsh",
+    "plugin",
+    "cybersecurity",
+    "mcp",
+    "security-tools",
+    "hos-forge"
+  ],
+  "author": "HOS Team",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "chalk": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

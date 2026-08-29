@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    # A whole run is about half an hour, and the browser suites are the bulk of
+    # it. This is a ceiling on a stall, not a budget: `playwright install
+    # --with-deps` once sat on `apt-get update` for 55 minutes against a step
+    # that normally takes three, and without a limit the default is six hours
+    # of a runner doing nothing.
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # `src/generated/` is derived from node_modules and deliberately not
+      # committed, so it has to exist before anything reads its types.
+      - name: Assemble generated sources
+        run: npm run assemble
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Virtual HTTP lifecycle
+        run: npm run test:http
+
+      # The shell the agent's commands run in, compared against the real bash on
+      # the runner. Every construct in the corpus is one an agent writes, and a
+      # disagreement here is a wrong answer the other suites cannot see.
+      - name: Shell matches bash
+        run: npm run test:shell
+
+      - name: Build
+        run: npm run build
+
+      - name: End-to-end
+        # Boot, client plugin roster, in-browser shell and git, and durability
+        # across a reload. The model turn is skipped without a key.
+        run: |
+          npx playwright install --with-deps chromium webkit
+          node scripts/serve.mjs 4173 &
+          sleep 3
+          npx tsx scripts/e2e.ts
+          # The degraded path: a browser that cannot run the container still has
+          # to run commands and read files, on the page's own filesystem.
+          npx tsx scripts/fallback-e2e.ts
+          # WebKit's multiline native-function source used to make every plain
+          # session header fail strict JSON validation. This also removes the
+          # two APIs Safari added in 17.4 before loading the page, so the
+          # pre-module bootstrap and real directory picker/session flow run.
+          npx tsx scripts/ios-e2e.ts
+
+      - name: Runtime workloads
+        # Runs Node, installs a package from the registry and imports it, runs a
+        # package script, and checks the agent and the terminal are one machine.
+        run: |
+          node scripts/serve.mjs 4175 &
+          sleep 3
+          npx tsx scripts/runtime-e2e.ts --url http://127.0.0.1:4175/
+
+      - name: Python
+        # A real CPython, a real pip, and the same interpreter from the terminal
+        # and from the agent — including across a reload, which is the only
+        # check that the installation is actually stored.
+        run: |
+          node scripts/serve.mjs 4176 &
+          sleep 3
+          npx tsx scripts/python-e2e.ts --url http://127.0.0.1:4176/
+
+      - name: Emulated machines
+        # The other runtime, driven the way its tools drive it: a DOS prompt
+        # moved onto a serial console, a real POSIX shell, and two graphical
+        # Windows that can only be typed at. Also the check that matters most —
+        # that a session on an emulated machine is not still offered `jsh`.
+        #
+        # Windows 3.1 and Windows 98 are booted from images this repository
+        # neither ships nor serves; the suite fetches them once, from Node, and
+        # caches them under the runner's temporary directory. Both report a
+        # skip — as a skip, counted separately from the passes — when no image
+        # can be had, so a third party having a bad day does not turn this red.
+        # Every other scenario is a hard failure.
+        run: |
+          node scripts/serve.mjs 4179 &
+          sleep 3
+          npx tsx scripts/v86-e2e.ts --url http://127.0.0.1:4179/
+
+      - name: Files, chat file links, and the plugin roster
+        # The panel over the same filesystem the agent uses, a file in and a
+        # file out of the tab, the host's "open this path" landing somewhere,
+        # and a plugin toggle that leaves the rest of the composition standing.
+        run: |
+          node scripts/serve.mjs 4178 &
+          sleep 3
+          npx tsx scripts/files-e2e.ts --url http://127.0.0.1:4178/
+
+      - name: Plugin compatibility
+        # Installs real community plugins from npm into the built app. Runs only
+        # on the default branch: it reaches the network for every package.
+        if: github.ref == 'refs/heads/main'
+        run: |
+          node scripts/serve.mjs 4174 &
+          sleep 3
+          npx tsx scripts/plugin-e2e.ts --url http://127.0.0.1:4174/ || true
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: /tmp/dshw-*.png
+          if-no-files-found: ignore

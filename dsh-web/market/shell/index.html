@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href="./shell/favicon.svg" />
+    <title>DeepSeek Harness</title>
+    <script>
+      // The current dsh packages use modern UUID, object, response, stream,
+      // cancellation/deferred and explicit-resource-management helpers.
+      // Without these small equivalents an iPhone can draw the shell (and even
+      // the direct Files panel) while every client request — including
+      // workspace, provider and preset loading — repeatedly disconnects. This
+      // classic script runs before the module graph, including dependencies
+      // that use computed symbol keys while evaluating.
+      if (typeof crypto.randomUUID !== 'function') {
+        Object.defineProperty(Crypto.prototype, 'randomUUID', {
+          configurable: true,
+          writable: true,
+          value: function () {
+            var bytes = new Uint8Array(16)
+            this.getRandomValues(bytes)
+            bytes[6] = (bytes[6] & 15) | 64
+            bytes[8] = (bytes[8] & 63) | 128
+            var hex = ''
+            for (var i = 0; i < bytes.length; i++) hex += bytes[i].toString(16).padStart(2, '0')
+            return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-' + hex.slice(12, 16)
+              + '-' + hex.slice(16, 20) + '-' + hex.slice(20)
+          },
+        })
+      }
+      if (typeof Object.hasOwn !== 'function') {
+        Object.hasOwn = function (object, property) {
+          if (object === null || object === undefined) throw new TypeError('Object.hasOwn called on null or undefined')
+          return Object.prototype.hasOwnProperty.call(object, property)
+        }
+      }
+      if (typeof Response.json !== 'function') {
+        Object.defineProperty(Response, 'json', {
+          configurable: true,
+          writable: true,
+          value: function (data, init) {
+            var body = JSON.stringify(data)
+            if (body === undefined) throw new TypeError('Response.json could not serialize the supplied value')
+            var options = init === undefined ? {} : init
+            var headers = new Headers(options.headers)
+            if (!headers.has('content-type')) headers.set('content-type', 'application/json')
+            return new Response(body, {
+              status: options.status,
+              statusText: options.statusText,
+              headers: headers,
+            })
+          },
+        })
+      }
+      if (typeof ReadableStream === 'function' && typeof Symbol.asyncIterator === 'symbol') {
+        var readableStreamPrototype = ReadableStream.prototype
+        if (typeof readableStreamPrototype.values !== 'function') {
+          Object.defineProperty(readableStreamPrototype, 'values', {
+            configurable: true,
+            enumerable: false,
+            writable: true,
+            value: function (options) {
+              var preventCancel = options !== undefined && options !== null
+                && Boolean(Object(options).preventCancel)
+              var reader = this.getReader()
+              var finished = false
+              var ongoing = Promise.resolve()
+
+              var release = function () {
+                reader.releaseLock()
+              }
+              var releaseAfterError = function () {
+                // Releasing is cleanup. If reading or cancellation already
+                // failed, that original failure is the useful one to preserve.
+                try { release() } catch (_releaseError) {}
+              }
+              var nextStep = function () {
+                if (finished) return Promise.resolve({ value: undefined, done: true })
+                var reading
+                try {
+                  reading = reader.read()
+                } catch (error) {
+                  finished = true
+                  releaseAfterError()
+                  return Promise.reject(error)
+                }
+                return Promise.resolve(reading).then(function (result) {
+                  if (result.done) {
+                    finished = true
+                    release()
+                  }
+                  return result
+                }, function (error) {
+                  finished = true
+                  releaseAfterError()
+                  throw error
+                })
+              }
+              var returnStep = function (value) {
+                if (finished) return Promise.resolve({ value: value, done: true })
+                finished = true
+
+                var cancellation
+                try {
+                  cancellation = preventCancel ? Promise.resolve() : reader.cancel(value)
+                } catch (error) {
+                  releaseAfterError()
+                  return Promise.reject(error)
+                }
+
+                var releaseError
+                try { release() } catch (error) { releaseError = error }
+                return Promise.resolve(cancellation).then(function () {
+                  if (releaseError !== undefined) throw releaseError
+                  return { value: value, done: true }
+                }, function (error) {
+                  // A cancellation failure is primary; a release failure must
+                  // not replace it.
+                  throw error
+                })
+              }
+
+              var iterator = {
+                next: function () {
+                  ongoing = ongoing.then(nextStep, nextStep)
+                  return ongoing
+                },
+                return: function (value) {
+                  ongoing = ongoing.then(function () { return returnStep(value) }, function () { return returnStep(value) })
+                  return ongoing
+                },
+              }
+              Object.defineProperty(iterator, Symbol.asyncIterator, {
+                configurable: true,
+                enumerable: false,
+                writable: true,
+                value: function () { return this },
+              })
+              return iterator
+            },
+          })
+        }
+        if (typeof readableStreamPrototype[Symbol.asyncIterator] !== 'function') {
+          Object.defineProperty(readableStreamPrototype, Symbol.asyncIterator, {
+            configurable: true,
+            enumerable: false,
+            writable: true,
+            value: function (options) { return this.values(options) },
+          })
+        }
+      }
+      if (typeof Symbol.dispose !== 'symbol') {
+        Object.defineProperty(Symbol, 'dispose', { value: Symbol.for('Symbol.dispose') })
+      }
+      if (typeof Symbol.asyncDispose !== 'symbol') {
+        Object.defineProperty(Symbol, 'asyncDispose', { value: Symbol.for('Symbol.asyncDispose') })
+      }
+      if (typeof Promise.withResolvers !== 'function') {
+        Promise.withResolvers = function () {
+          var resolve
+          var reject
+          var promise = new this(function (resolvePromise, rejectPromise) {
+            resolve = resolvePromise
+            reject = rejectPromise
+          })
+          return { promise: promise, resolve: resolve, reject: reject }
+        }
+      }
+      if (typeof AbortSignal.any !== 'function') {
+        AbortSignal.any = function (iterable) {
+          var signals = Array.from(iterable)
+          var controller = new AbortController()
+          var listeners = []
+          var abortFrom = function (signal) {
+            for (var i = 0; i < listeners.length; i++) {
+              listeners[i][0].removeEventListener('abort', listeners[i][1])
+            }
+            listeners = []
+            controller.abort(signal.reason)
+          }
+          for (var i = 0; i < signals.length; i++) {
+            if (signals[i].aborted) {
+              abortFrom(signals[i])
+              break
+            }
+            var listener = abortFrom.bind(undefined, signals[i])
+            listeners.push([signals[i], listener])
+            signals[i].addEventListener('abort', listener, { once: true })
+          }
+          return controller.signal
+        }
+      }
+      if (typeof AbortSignal.timeout !== 'function') {
+        AbortSignal.timeout = function (delay) {
+          var milliseconds = Number(delay)
+          if (!Number.isFinite(milliseconds) || milliseconds < 0) {
+            throw new TypeError('AbortSignal.timeout requires a non-negative finite delay')
+          }
+          var controller = new AbortController()
+          setTimeout(function () {
+            var reason
+            try {
+              reason = new DOMException('The operation timed out.', 'TimeoutError')
+            } catch (_error) {
+              reason = new Error('The operation timed out.')
+              reason.name = 'TimeoutError'
+            }
+            controller.abort(reason)
+          }, milliseconds)
+          return controller.signal
+        }
+      }
+      if (typeof AbortSignal.prototype.throwIfAborted !== 'function') {
+        AbortSignal.prototype.throwIfAborted = function () {
+          if (!this.aborted) return
+          if (this.reason !== undefined) throw this.reason
+          throw new DOMException('The operation was aborted.', 'AbortError')
+        }
+      }
+
+      // Bootstrap placeholder. Bundled dependencies read `process.platform`
+      // while their module bodies evaluate, which happens before any of this
+      // app's own modules run — so the object has to exist here, in a classic
+      // script. `src/node/process.ts` merges the full implementation onto this
+      // same object, keeping one identity for anything that captured it early.
+      globalThis.process = globalThis.process || {
+        env: { NODE_ENV: 'production' },
+        platform: 'linux',
+        arch: 'wasm32',
+        argv: ['/usr/bin/node', '/usr/bin/dsh'],
+        version: 'v22.0.0',
+        versions: {},
+        cwd: function () { return '/workspace' },
+        nextTick: function (fn) { queueMicrotask(fn) },
+        emitWarning: function () {},
+        on: function () { return globalThis.process },
+        once: function () { return globalThis.process },
+        off: function () { return globalThis.process },
+      }
+      globalThis.global = globalThis.global || globalThis
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

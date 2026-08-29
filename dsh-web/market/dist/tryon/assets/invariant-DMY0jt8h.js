@@ -1,0 +1,1 @@
+const e="@deepseek-ai/dsh-host-directory-picker-auto",s="host-directory-picker-auto-invariant",n=["invariants"],i=()=>{},o=t=>Promise.resolve(t.invariants.register(e,i));export{o as apply,n as inject,s as name};

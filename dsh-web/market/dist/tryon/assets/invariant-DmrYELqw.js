@@ -1,0 +1,1 @@
+const n="@deepseek-ai/dsh-code-runtime-worker-thread",t="code-runtime-worker-thread-invariant",i=["invariants"],r=()=>{},s=e=>Promise.resolve(e.invariants.register(n,r));export{s as apply,i as inject,t as name};

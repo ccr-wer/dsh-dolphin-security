@@ -1,0 +1,5 @@
+# Bilingual-pair consistency record (docs/i18n.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with git hash-object.
+2026-08-26-telemetry-read-key-header-only.md: d3950705fbbd8d7e10ddd8f87400d7535565366d
+2026-08-26-telemetry-read-key-header-only.zh.md: d6f64989710948627ce6ec8c51b2b5fa88522c15

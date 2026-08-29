@@ -1,0 +1,1 @@
+const n="@deepseek-ai/dsh-credentials",s="credentials-invariant",a=["invariants"],r=(e,t)=>{e.on("credentials/reference-updated",i=>{e.get("credentials")===void 0&&t(`credentials/reference-updated for "${i}" emitted without a live credentials service`)})},c=e=>Promise.resolve(e.invariants.register(n,r));export{c as apply,a as inject,s as name};

@@ -1,0 +1,1 @@
+function o(n){const e={};for(const[t,r]of n.entries())e[t]=r;return e}function s(n){if(!n)return;const e={};for(const[t,r]of Object.entries(n))r!==null&&(e[t]=r);return Object.keys(e).length>0?e:void 0}export{o as h,s as p};

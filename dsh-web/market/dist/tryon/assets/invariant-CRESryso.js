@@ -1,0 +1,1 @@
+const i="@deepseek-ai/dsh-agent",r="agent-invariant",c=["invariants"],o=(t,s)=>{const n=new WeakMap;t.on("agent/status",({agent:a,status:e})=>{n.get(a)===e&&s(`agent/status repeated ${e} (no-op transition)`),n.set(a,e)},{global:!0})},l=t=>Promise.resolve(t.invariants.register(i,o));export{l as apply,c as inject,r as name};

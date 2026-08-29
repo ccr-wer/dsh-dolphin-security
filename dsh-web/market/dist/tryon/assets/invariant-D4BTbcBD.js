@@ -1,0 +1,1 @@
+const a="@deepseek-ai/dsh-attachment-local",e="attachment-local-invariant",s=["invariants","attachments"],n=()=>{},c=t=>Promise.resolve(t.invariants.register(a,n));export{c as apply,s as inject,e as name};
