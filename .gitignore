@@ -1,0 +1,20 @@
+# ===== Dolphin 忽略规则 =====
+
+# 依赖
+node_modules/
+
+# 扫描报告（可能包含未来的扫描结果与临时敏感数据）
+reports/
+
+# 日志
+*.log
+
+# macOS
+.DS_Store
+
+# 环境变量与密钥（安全底线，绝不入库）
+.env
+.env.*
+*.pem
+*.key
+*.p12
