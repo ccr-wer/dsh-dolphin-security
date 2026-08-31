@@ -331,8 +331,10 @@ Dolphin 主动巡检核心（dolphin-core.js）
   console.log(`[Dolphin] JSON 报告：${result.jsonPath}`)
 }
 
-// 仅当直接运行（node dolphin-core.js）时执行 main，被 import 时不执行
-const isMain = import.meta.url === pathToFileURL(process.argv[1]).href
+// 仅当直接运行（node dolphin-core.js）时执行 main，被 import 时不执行。
+// process.argv[1] 在 `node -e` / `--input-type=module` 场景下是 undefined，
+// pathToFileURL(undefined) 会抛 TypeError，先做守卫。
+const isMain = process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href
 if (isMain) {
   await main()
 }
