@@ -1,9 +1,9 @@
 {
-  "name": "dolphin-security",
+  "name": "dsh-dolphin-security",
   "version": "0.1.0",
   "type": "module",
   "private": false,
-  "description": "Dolphin - 主动巡检型安全防御插件，支持本地扫描与远程 SSH 巡逻。将渗透测试方法论（信息收集→漏洞探测→利用验证→报告）转化为主动防御巡检流程：基于 Semgrep 的扫描层与基于 SSH 的执行层相融合，可对本地目录做静态扫描，也可将扫描命令经 SSH 下发至远程主机执行并回收结构化结果。",
+  "description": "此为 DSH 生态插件。Dolphin - 主动巡检型安全防御插件，支持本地扫描与远程 SSH 巡逻。将渗透测试方法论（信息收集→漏洞探测→利用验证→报告）转化为主动防御巡检流程：基于 Semgrep 的扫描层与基于 SSH 的执行层相融合，可对本地目录做静态扫描，也可将扫描命令经 SSH 下发至远程主机执行并回收结构化结果。",
   "license": "MIT",
   "keywords": [
     "security",
@@ -15,7 +15,9 @@
     "sast",
     "vulnerability-scanner",
     "patrol",
-    "dolphin"
+    "dolphin",
+    "dsh",
+    "dsh-plugin"
   ],
   "engines": {
     "node": ">=20"
@@ -25,12 +27,18 @@
     "dolphin-patrol.js",
     "dolphin-ssh-core.js",
     "dsh-code-scan/lib/scanner.js",
+    "cordis.patch.yml",
     "README.md",
     "README_EN.md",
     "WINDOWS_PREVIEW_GUIDE.md",
     "LICENSE",
     "THIRD_PARTY_LICENSES"
   ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "scripts": {
     "scan": "node dolphin-core.js",
     "self-test": "node dolphin-core.js --mock",
