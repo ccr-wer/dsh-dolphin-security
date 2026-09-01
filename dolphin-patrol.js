@@ -140,131 +140,140 @@ export async function runPatrol(alias, targetDir, options = {}) {
   const scanTimeoutMs = options.scanTimeoutMs ?? DEFAULT_SCAN_TIMEOUT
   const maxFindings = options.maxFindings ?? DEFAULT_MAX_FINDINGS
   const reportsDir = options.reportsDir ?? REPORTS_DIR
-  const engine = options.engine ?? createSshEngine(options.store ?? createHostStore())
+  // 引擎归属判定：自建引擎用完必须 dispose()，否则 ssh2 连接 + keepalive 定时器会
+  // 挂住 Node 事件循环，进程跑完卡住不退出（CLI 场景实测如此）。注入的引擎
+  // （测试用）由调用方负责释放，这里不越权关闭。
+  const injectedEngine = options.engine !== undefined
+  const engine = injectedEngine ? options.engine : createSshEngine(options.store ?? createHostStore())
 
-  // 1. 连通性检查（echo ok，5s 预算）
-  const check = await engine.test(alias)
-  if (!check.ok) {
-    return { ok: false, stage: 'healthcheck', host: alias, error: check.error }
-  }
-
-  // 2. 探测远程是否装了 semgrep
-  let hasSemgrep = false
   try {
-    hasSemgrep = await detectRemoteSemgrep(engine, alias)
-  } catch (e) {
-    return { ok: false, stage: 'detect', host: alias, error: msg(e) }
-  }
+    // 1. 连通性检查（echo ok，5s 预算）
+    const check = await engine.test(alias)
+    if (!check.ok) {
+      return { ok: false, stage: 'healthcheck', host: alias, error: check.error }
+    }
 
-  // 3. 执行远程扫描
-  //    attempts 固定传 1：扫描是只读幂等操作，断线重连重放只会浪费一次完整扫描，
-  //    宁可失败上报，也不静默重扫。
-  let rawResults
-  if (hasSemgrep) {
-    const cmd = buildRemoteScanCommand(targetDir, rulesConfig)
-    let r
+    // 2. 探测远程是否装了 semgrep
+    let hasSemgrep = false
     try {
-      r = await engine.exec(alias, cmd, scanTimeoutMs, 1)
+      hasSemgrep = await detectRemoteSemgrep(engine, alias)
     } catch (e) {
-      return { ok: false, stage: 'scan', host: alias, error: msg(e) }
+      return { ok: false, stage: 'detect', host: alias, error: msg(e) }
     }
-    if (r.timedOut) {
-      return { ok: false, stage: 'scan', host: alias, error: `扫描超时（${scanTimeoutMs}ms），请缩小扫描范围` }
-    }
-    // semgrep 退出码语义：0=无问题 1=有问题（stdout 仍是完整 JSON）2=失败。
-    // 因此按 exitCode 判断，而不是 exec 返回的 success（exitCode 1 时 success=false）。
-    if (r.exitCode === 2) {
-      return { ok: false, stage: 'scan', host: alias, error: `semgrep 扫描失败：${(r.stderr || '').slice(0, 300)}` }
-    }
-    if (r.exitCode !== 0 && r.exitCode !== 1) {
-      return { ok: false, stage: 'scan', host: alias, error: `远程命令异常退出码 ${r.exitCode}` }
-    }
-    let parsed
-    try {
-      parsed = JSON.parse(r.stdout)
-    } catch {
-      return { ok: false, stage: 'parse', host: alias, error: '远程输出无法解析为 JSON（可能被截断或版本不兼容）' }
-    }
-    rawResults = parsed.results ?? []
-  } else {
-    // 远端无 semgrep：把本地扫描器 + 规则文件部署到远端临时目录，用 node 执行。
-    const remoteBase = `/tmp/dolphin-patrol-${Date.now()}`
-    try {
-      await engine.exec(alias, `mkdir -p ${shellQuote(remoteBase)}`, 5000, 1)
-      // 上传扫描器（远端重命名为 .mjs 强制 ESM，见 buildRemoteRunnerSource 注释）
-      const localScanner = resolve(__dirname, 'dsh-code-scan/lib/scanner.js')
-      await engine.upload(alias, localScanner, `${remoteBase}/scanner.mjs`, false)
-      // 若 rulesConfig 指向一个本地规则文件，把它一并上传，远端改用该文件
-      let remoteRules = rulesConfig
-      if (typeof rulesConfig === 'string' && existsSync(resolve(rulesConfig))) {
-        await engine.upload(alias, resolve(rulesConfig), `${remoteBase}/rules.yml`, false)
-        remoteRules = `${remoteBase}/rules.yml`
-      }
-      // 生成 runner.mjs 上传（本地临时文件，跑完删除）
-      const runnerLocal = join(tmpdir(), `dolphin-patrol-runner-${Date.now()}.mjs`)
-      writeFileSync(runnerLocal, buildRemoteRunnerSource(targetDir, remoteRules), 'utf8')
+
+    // 3. 执行远程扫描
+    //    attempts 固定传 1：扫描是只读幂等操作，断线重连重放只会浪费一次完整扫描，
+    //    宁可失败上报，也不静默重扫。
+    let rawResults
+    if (hasSemgrep) {
+      const cmd = buildRemoteScanCommand(targetDir, rulesConfig)
+      let r
       try {
-        await engine.upload(alias, runnerLocal, `${remoteBase}/runner.mjs`, false)
-      } finally {
-        rmSync(runnerLocal, { force: true })
+        r = await engine.exec(alias, cmd, scanTimeoutMs, 1)
+      } catch (e) {
+        return { ok: false, stage: 'scan', host: alias, error: msg(e) }
       }
-      // 远端执行
-      const rr = await engine.exec(alias, `node ${shellQuote(`${remoteBase}/runner.mjs`)}`, scanTimeoutMs, 1)
-      if (rr.exitCode !== 0) {
-        return { ok: false, stage: 'scan', host: alias, error: `远端扫描脚本退出码 ${rr.exitCode}：${(rr.stderr || '').slice(0, 300)}` }
+      if (r.timedOut) {
+        return { ok: false, stage: 'scan', host: alias, error: `扫描超时（${scanTimeoutMs}ms），请缩小扫描范围` }
+      }
+      // semgrep 退出码语义：0=无问题 1=有问题（stdout 仍是完整 JSON）2=失败。
+      // 因此按 exitCode 判断，而不是 exec 返回的 success（exitCode 1 时 success=false）。
+      if (r.exitCode === 2) {
+        return { ok: false, stage: 'scan', host: alias, error: `semgrep 扫描失败：${(r.stderr || '').slice(0, 300)}` }
+      }
+      if (r.exitCode !== 0 && r.exitCode !== 1) {
+        return { ok: false, stage: 'scan', host: alias, error: `远程命令异常退出码 ${r.exitCode}` }
       }
       let parsed
       try {
-        parsed = JSON.parse(rr.stdout)
+        parsed = JSON.parse(r.stdout)
       } catch {
-        return { ok: false, stage: 'parse', host: alias, error: '远端扫描脚本输出无法解析为 JSON' }
-      }
-      if (parsed.ok !== true) {
-        // scanner.js 在远端报错（例如仍未检测到 semgrep），诚实降级回传
-        return { ok: false, stage: 'scan', host: alias, error: parsed.message || '远端扫描失败' }
+        return { ok: false, stage: 'parse', host: alias, error: '远程输出无法解析为 JSON（可能被截断或版本不兼容）' }
       }
       rawResults = parsed.results ?? []
-    } catch (e) {
-      return { ok: false, stage: 'deploy', host: alias, error: msg(e) }
+    } else {
+      // 远端无 semgrep：把本地扫描器 + 规则文件部署到远端临时目录，用 node 执行。
+      const remoteBase = `/tmp/dolphin-patrol-${Date.now()}`
+      try {
+        await engine.exec(alias, `mkdir -p ${shellQuote(remoteBase)}`, 5000, 1)
+        // 上传扫描器（远端重命名为 .mjs 强制 ESM，见 buildRemoteRunnerSource 注释）
+        const localScanner = resolve(__dirname, 'dsh-code-scan/lib/scanner.js')
+        await engine.upload(alias, localScanner, `${remoteBase}/scanner.mjs`, false)
+        // 若 rulesConfig 指向一个本地规则文件，把它一并上传，远端改用该文件
+        let remoteRules = rulesConfig
+        if (typeof rulesConfig === 'string' && existsSync(resolve(rulesConfig))) {
+          await engine.upload(alias, resolve(rulesConfig), `${remoteBase}/rules.yml`, false)
+          remoteRules = `${remoteBase}/rules.yml`
+        }
+        // 生成 runner.mjs 上传（本地临时文件，跑完删除）
+        const runnerLocal = join(tmpdir(), `dolphin-patrol-runner-${Date.now()}.mjs`)
+        writeFileSync(runnerLocal, buildRemoteRunnerSource(targetDir, remoteRules), 'utf8')
+        try {
+          await engine.upload(alias, runnerLocal, `${remoteBase}/runner.mjs`, false)
+        } finally {
+          rmSync(runnerLocal, { force: true })
+        }
+        // 远端执行
+        const rr = await engine.exec(alias, `node ${shellQuote(`${remoteBase}/runner.mjs`)}`, scanTimeoutMs, 1)
+        if (rr.exitCode !== 0) {
+          return { ok: false, stage: 'scan', host: alias, error: `远端扫描脚本退出码 ${rr.exitCode}：${(rr.stderr || '').slice(0, 300)}` }
+        }
+        let parsed
+        try {
+          parsed = JSON.parse(rr.stdout)
+        } catch {
+          return { ok: false, stage: 'parse', host: alias, error: '远端扫描脚本输出无法解析为 JSON' }
+        }
+        if (parsed.ok !== true) {
+          // scanner.js 在远端报错（例如仍未检测到 semgrep），诚实降级回传
+          return { ok: false, stage: 'scan', host: alias, error: parsed.message || '远端扫描失败' }
+        }
+        rawResults = parsed.results ?? []
+      } catch (e) {
+        return { ok: false, stage: 'deploy', host: alias, error: msg(e) }
+      }
     }
-  }
 
-  // 4. 映射为 Dolphin 统一 SecurityFinding（复用 dolphin-core 的提取器 + 补 host 维度）
-  const findings = sortFindings(extractStructuredFindings(rawResults)).map((f) => ({ host: alias, ...f }))
-  const total = findings.length
-  const truncated = total > maxFindings
-  const shown = truncated ? findings.slice(0, maxFindings) : findings
+    // 4. 映射为 Dolphin 统一 SecurityFinding（复用 dolphin-core 的提取器 + 补 host 维度）
+    const findings = sortFindings(extractStructuredFindings(rawResults)).map((f) => ({ host: alias, ...f }))
+    const total = findings.length
+    const truncated = total > maxFindings
+    const shown = truncated ? findings.slice(0, maxFindings) : findings
 
-  // 5. 存档到 reports/（结构化 JSON，可直接消费）
-  const ts = timestamp()
-  const reportFile = join(reportsDir, `patrol-${alias}-${ts}.json`)
-  mkdirSync(reportsDir, { recursive: true })
-  writeFileSync(
-    reportFile,
-    JSON.stringify({
-      generatedAt: new Date().toISOString(),
+    // 5. 存档到 reports/（结构化 JSON，可直接消费）
+    const ts = timestamp()
+    const reportFile = join(reportsDir, `patrol-${alias}-${ts}.json`)
+    mkdirSync(reportsDir, { recursive: true })
+    writeFileSync(
+      reportFile,
+      JSON.stringify({
+        generatedAt: new Date().toISOString(),
+        host: alias,
+        targetDir,
+        rulesConfig,
+        total,
+        truncated,
+        summary: summarize(shown),
+        findings: shown,
+      }, null, 2),
+      'utf8',
+    )
+
+    return {
+      ok: true,
       host: alias,
       targetDir,
       rulesConfig,
       total,
       truncated,
+      shown: shown.length,
       summary: summarize(shown),
+      reportFile,
       findings: shown,
-    }, null, 2),
-    'utf8',
-  )
-
-  return {
-    ok: true,
-    host: alias,
-    targetDir,
-    rulesConfig,
-    total,
-    truncated,
-    shown: shown.length,
-    summary: summarize(shown),
-    reportFile,
-    findings: shown,
+    }
+  } finally {
+    // 自建引擎用完即释放，避免 ssh2 连接 + keepalive 定时器挂住事件循环。
+    if (!injectedEngine) engine.dispose()
   }
 }
 
