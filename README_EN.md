@@ -152,7 +152,7 @@ Dolphin is built on three layers — the eyes, the hands, and the brain:
 ## Programmatic usage
 
 ```javascript
-import { runPatrol, runLocalScan, buildRemoteScanCommand } from 'dolphin'
+import { runPatrol, runLocalScan, buildRemoteScanCommand } from 'dolphin-security'
 
 // Local scan
 const local = await runLocalScan('/path/to/project')
