@@ -144,7 +144,7 @@ Dolphin is built on three layers — the eyes, the hands, and the brain:
 | Layer | File | Responsibility |
 |---|---|---|
 | **Scanning layer (eyes)** | `dolphin-core.js` | Semgrep wrapper; defines the unified `SecurityFinding` model |
-| **Execution layer (hands)** | `dolphin-ssh-core.js` | SSH engine distilled from dsh-ssh; `exec` / `cluster` / `upload` / `download` / `test` |
+| **Execution layer (hands)** | `dolphin-ssh-core.js` | Standalone SSH engine adapted from the Apache-2.0 licensed dsh-ssh; `exec` / `cluster` / `upload` / `download` / `test` |
 | **Controller (brain)** | `dolphin-patrol.js` | Dispatches scans over SSH, collects JSON, structures and archives results |
 
 ---
@@ -177,7 +177,7 @@ buildRemoteScanCommand('/srv/app', 'p/security-audit')
 |---|---|---|
 | dsh-code-scan | MIT | Semgrep scanning wrapper, base scanning module |
 | dsh-plugin-hos-forge-v2 | MIT | Reference for MCP orchestration |
-| dsh-web (dsh-ssh subpackage) | Apache-2.0 | SSH/SFTP capabilities, distilled into `dolphin-ssh-core.js` |
+| dsh-web (dsh-ssh subpackage) | Apache-2.0 | SSH/SFTP capabilities, independently packaged as `dolphin-ssh-core.js` |
 | ssh2 | MIT | Underlying SSH protocol library |
 | semgrep | LGPL-2.1 | Open-source static analysis engine |
 

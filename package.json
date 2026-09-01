@@ -28,7 +28,8 @@
     "README.md",
     "README_EN.md",
     "WINDOWS_PREVIEW_GUIDE.md",
-    "LICENSE"
+    "LICENSE",
+    "THIRD_PARTY_LICENSES"
   ],
   "scripts": {
     "scan": "node dolphin-core.js",

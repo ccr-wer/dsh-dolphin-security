@@ -1,12 +1,11 @@
 // ============================================================================
 // dolphin-ssh-core.js —— Project Dolphin 的「手」：远程巡检 SSH 核心
 // ----------------------------------------------------------------------------
-// 来源：dsh-web/packages/dsh-ssh/src 的【方案 A】裁剪融合
-//   搬运：engine.ts · engine/connection-pool.ts · engine/sftp.ts
+// 来源：基于 Apache-2.0 许可的 dsh-ssh（dsh-web/packages/dsh-ssh/src）独立封装
+//   保留：engine.ts · engine/connection-pool.ts · engine/sftp.ts
 //         engine/cluster.ts · store.ts · protocol.ts
-//   剥离：cordis / @deepseek-ai/dsh-settings / @deepseek-ai/dsh-tools
-//         src/client（浏览器半区，含 dsh-market.com 遥测上报）
-//         engine/pty.ts（Web 终端）+ engine/tunnel.ts（端口转发）
+//   适配：移除 cordis / @deepseek-ai/dsh-settings / @deepseek-ai/dsh-tools 等
+//         宿主专属上下文，以及仅面向 Web 界面的 client 与 pty / tunnel 模块
 //   → 本文件零 DSH 依赖、零对外网络回连，运行时唯一三方依赖是 ssh2。
 //
 // 模块格式说明（重要）：
@@ -111,12 +110,12 @@ export function isSsh2Available() {
  * @typedef {Object} RemoteDirEntry
  */
 
-// 已从 protocol.ts 剔除的运行时导出（全部只服务于 HTTP 路由与浏览器半区）：
+// protocol.ts 中仅面向 HTTP 路由与 Web 界面的导出未纳入本模块：
 //   SSH_API_BASE / SSH_API / TerminalServerFrame / TerminalClientFrame
 //   TransferStreamLine / ApiErrorBody
 
 // ============================================================================
-// 2. dsh-home.ts —— DSH_HOME 解析（剥离 @deepseek-ai/dsh-settings 后内联）
+// 2. dsh-home.ts —— DSH_HOME 解析（移除 @deepseek-ai/dsh-settings 依赖后内联）
 // ----------------------------------------------------------------------------
 // 与 DSH 解耦后不再默认读写 ~/.dsh，改为优先 ~/.dolphin，避免和宿主插件抢目录。
 // ============================================================================
