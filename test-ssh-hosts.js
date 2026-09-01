@@ -86,9 +86,11 @@ export function setupTestHost(store = createHostStore()) {
 // ssh2 装在隔离工作区，D:\Dolphin 没有 node_modules。ESM 不认 NODE_PATH，
 // 但 dolphin-ssh-core.js 内部用 createRequire 加载 ssh2 时认。
 // 这里纯粹是本机的便利兜底，不是生产逻辑：找不到就明确提示，绝不静默。
+// 仅依赖环境变量，不硬编码任何本机绝对路径。ssh2 装在哪由 NODE_PATH 或
+// DOLPHIN_SSH2_MODULE 环境变量显式指定，避免把开发者本机目录泄入源码。
 const SSH2_CANDIDATES = [
   process.env.NODE_PATH,
-  'C:/Users/imf/.workbuddy/binaries/node/workspace/node_modules',
+  process.env.DOLPHIN_SSH2_MODULE,
 ].filter(Boolean)
 
 function resolveNodePath() {

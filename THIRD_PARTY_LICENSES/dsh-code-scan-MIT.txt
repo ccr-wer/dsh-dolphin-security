@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Dolphin Contributors
+Copyright (c) 2025 huang-2028
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,26 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-----------------------------------------------------------------------------
-
-Third-party notices
-----------------------------------------------------------------------------
-
-Dolphin includes code derived from the following open-source projects. Their
-original copyright notices and license terms are reproduced here as required
-by their respective licenses. Full license texts are bundled in the
-`THIRD_PARTY_LICENSES/` directory.
-
-1. dsh-code-scan
-   Copyright (c) 2025 huang-2028
-   Source: https://github.com/xiaohuang-zaianlian/dsh-code-scan
-   License: MIT
-   Used as the base scanning module (dsh-code-scan/lib/scanner.js and the
-   scanning logic within dolphin-core.js).
-
-2. dsh-web / dsh-ssh
-   Copyright (c) dsh-web contributors (package @linxin666/dsh-ssh)
-   Source: https://github.com/zhu1090093659/dsh-web
-   License: Apache-2.0
-   Used as the basis for the SSH engine (dolphin-ssh-core.js).

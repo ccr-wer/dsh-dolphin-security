@@ -144,7 +144,7 @@ Dolphin 采用「眼睛 + 手脚 + 大脑」三层架构：
 | 层 | 文件 | 职责 |
 |---|---|---|
 | **扫描层（眼睛）** | `dolphin-core.js` | 基于 Semgrep 的扫描封装，提供统一 SecurityFinding 数据模型 |
-| **执行层（手脚）** | `dolphin-ssh-core.js` | 裁剪自 dsh-ssh 的 SSH 引擎，提供 exec / cluster / upload / download / test |
+| **执行层（手脚）** | `dolphin-ssh-core.js` | 基于 Apache-2.0 许可的 dsh-ssh 独立封装的 SSH 引擎，提供 exec / cluster / upload / download / test |
 | **融合控制器（大脑）** | `dolphin-patrol.js` | 将扫描命令经 SSH 下发至远程主机，回收 JSON 并结构化存档 |
 
 ---
@@ -155,7 +155,7 @@ Dolphin 采用「眼睛 + 手脚 + 大脑」三层架构：
 |---|---|---|
 | dsh-code-scan | MIT | Semgrep 扫描能力封装，作为基础扫描模块 |
 | dsh-plugin-hos-forge-v2 | MIT | 参考其 MCP 编排思路 |
-| dsh-web（dsh-ssh 子包） | Apache-2.0 | 提供 SSH/SFTP 能力，已裁剪为 `dolphin-ssh-core.js` |
+| dsh-web（dsh-ssh 子包） | Apache-2.0 | 提供 SSH/SFTP 能力，独立封装为 `dolphin-ssh-core.js` |
 | ssh2 | MIT | 底层 SSH 协议库 |
 | semgrep | LGPL-2.1 | 开源静态分析引擎 |
 
@@ -168,7 +168,7 @@ Dolphin 采用「眼睛 + 手脚 + 大脑」三层架构：
 - [README_EN.md](./README_EN.md) —— **English README**
 - [WINDOWS_PREVIEW_GUIDE.md](./WINDOWS_PREVIEW_GUIDE.md) —— **Windows 预览版交付说明（新手请先读这份）**
 - [DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md) —— 开发日志与踩坑记录
-- [docs/SSH_RECON_REPORT.md](./docs/SSH_RECON_REPORT.md) —— dsh-ssh 源码侦察报告与裁剪方案
+- [docs/SSH_RECON_REPORT.md](./docs/SSH_RECON_REPORT.md) —— dsh-ssh 源码侦察报告与适配方案
 - [docs/RECON_REPORT.md](./docs/RECON_REPORT.md) —— dsh-code-scan 源码侦察报告
 
 ---
