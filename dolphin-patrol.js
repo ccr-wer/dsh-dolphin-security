@@ -15,7 +15,8 @@
 
 import { createHostStore, createSshEngine } from './dolphin-ssh-core.js'
 import { scanDirectory } from './dsh-code-scan/lib/scanner.js'
-import { extractStructuredFindings } from './dolphin-core.js'
+// 严重级别排序/统计/时间戳统一复用 dolphin-core 的实现（此前两处各存一份副本）
+import { extractStructuredFindings, sortFindings, summarize, timestamp } from './dolphin-core.js'
 import { mkdirSync, writeFileSync, existsSync, rmSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -27,7 +28,6 @@ const REPORTS_DIR = process.env.DOLPHIN_REPORTS_DIR ?? join(__dirname, 'reports'
 const DEFAULT_RULES = 'p/security-audit'
 const DEFAULT_SCAN_TIMEOUT = 120000
 const DEFAULT_MAX_FINDINGS = 200
-const SEVERITY_ORDER = { ERROR: 0, WARNING: 1, INFO: 2 }
 
 // 统一入口：把上游能力一并 re-export，调用方只需 import 这一个文件。
 export { createHostStore, createSshEngine } from './dolphin-ssh-core.js'
@@ -37,12 +37,6 @@ export { extractStructuredFindings } from './dolphin-core.js'
 // ---- 小工具 ---------------------------------------------------------------
 const msg = (e) => (e instanceof Error ? e.message : String(e))
 
-function timestamp() {
-  const d = new Date()
-  const p = (n) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`
-}
-
 // POSIX shell 单引号转义：targetDir / rulesConfig 都可能来自用户输入，
 // 拼进远程命令字符串前必须转义，否则空格、$()、; 会注入命令。
 function shellQuote(value) {
@@ -51,23 +45,6 @@ function shellQuote(value) {
   // 只含安全字符（路径 / 冒号 / 等号 / @ 等）时原样返回，可读性更好
   if (/^[A-Za-z0-9_./:=@%+,-]+$/.test(s)) return s
   return "'" + s.replace(/'/g, "'\\''") + "'"
-}
-
-function sortFindings(findings) {
-  return [...findings].sort((a, b) => {
-    const sa = SEVERITY_ORDER[a.severity] ?? 3
-    const sb = SEVERITY_ORDER[b.severity] ?? 3
-    if (sa !== sb) return sa - sb
-    if (a.file !== b.file) return a.file < b.file ? -1 : 1
-    if (a.line !== b.line) return a.line - b.line
-    return (a.col ?? 0) - (b.col ?? 0)
-  })
-}
-
-function summarize(findings) {
-  const s = { ERROR: 0, WARNING: 0, INFO: 0 }
-  for (const f of findings) s[f.severity] = (s[f.severity] ?? 0) + 1
-  return s
 }
 
 // ============================================================================
@@ -409,15 +386,23 @@ export async function test() {
   check('坏 alias 健康检查降级', bad.ok === false && bad.stage === 'healthcheck', bad.error)
   tmpEngine.dispose()
 
-  // 5. 存档 dry-run（runLocalScan 对空目标——无网络，纯本地写文件）
-  console.log('\n【5】存档 dry-run')
+  // 5. 存档 dry-run
+  //    注意：这一节会真实调用本机 semgrep（runLocalScan → scanDirectory），
+  //    semgrep 未安装时 scanDirectory 是友好降级（ok=false）而非抛错，
+  //    因此这里判定为 SKIP 而不是 FAIL —— 否则"无需 semgrep 即可自检"的承诺会失效。
+  //    超时给到 60s：semgrep 冷启动（首次加载规则集）可能远超 30s。
+  console.log('\n【5】存档 dry-run（依赖本机 semgrep）')
   const dryReports = join(tmpdir(), `dolphin-patrol-reports-${Date.now()}`)
   const emptyDir = join(tmpdir(), `dolphin-patrol-empty-${Date.now()}`)
   mkdirSync(emptyDir, { recursive: true })
-  const local = await runLocalScan(emptyDir, { reportsDir: dryReports, timeoutMs: 30000 })
-  check('本地扫描返回 ok', local.ok === true, local.error)
-  check('存档文件已生成', existsSync(local.reportFile), local.reportFile)
-  check('空目标 total=0', local.total === 0, `total=${local.total}`)
+  const local = await runLocalScan(emptyDir, { reportsDir: dryReports, timeoutMs: 60000 })
+  if (local.ok === false && /未检测到 semgrep/.test(local.error ?? '')) {
+    console.log('  [SKIP] 本机未安装 semgrep，跳过存档 dry-run（pip install semgrep 后可完整自检）')
+  } else {
+    check('本地扫描返回 ok', local.ok === true, local.error)
+    check('存档文件已生成', existsSync(local.reportFile), local.reportFile)
+    check('空目标 total=0', local.total === 0, `total=${local.total}`)
+  }
   rmSync(emptyDir, { recursive: true, force: true })
   rmSync(dryReports, { recursive: true, force: true })
 

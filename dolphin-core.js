@@ -87,9 +87,11 @@ export function extractStructuredFindings(rawResults) {
 }
 
 // ---- 严重级别排序与统计 ----------------------------------------------------
-const SEVERITY_ORDER = { ERROR: 0, WARNING: 1, INFO: 2 }
+// 以下常量与三个工具函数是全局唯一实现：dolphin-patrol.js 曾各存一份副本且逐字相同，
+// 有实现漂移风险，已统一收敛到此处并由 patrol 复用。
+export const SEVERITY_ORDER = { ERROR: 0, WARNING: 1, INFO: 2 }
 
-function sortFindings(findings) {
+export function sortFindings(findings) {
   return [...findings].sort((a, b) => {
     const sa = SEVERITY_ORDER[a.severity] ?? 3
     const sb = SEVERITY_ORDER[b.severity] ?? 3
@@ -100,7 +102,7 @@ function sortFindings(findings) {
   })
 }
 
-function summarize(findings) {
+export function summarize(findings) {
   const s = { ERROR: 0, WARNING: 0, INFO: 0 }
   for (const f of findings) s[f.severity] = (s[f.severity] ?? 0) + 1
   return s
@@ -162,7 +164,7 @@ function buildJsonPayload(findings, meta) {
 }
 
 // ---- 时间戳（本地时区，YYYYMMDD-HHmmss） ------------------------------------
-function timestamp() {
+export function timestamp() {
   const d = new Date()
   const p = (n) => String(n).padStart(2, '0')
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`

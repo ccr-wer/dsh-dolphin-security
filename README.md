@@ -165,6 +165,14 @@ Dolphin 采用「眼睛 + 手脚 + 大脑」三层架构：
 
 ## 相关文档
 
-- [DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md) —— 开发日志与踩坑记录
+- [README_EN.md](./README_EN.md) —— **English README**
 - [WINDOWS_PREVIEW_GUIDE.md](./WINDOWS_PREVIEW_GUIDE.md) —— **Windows 预览版交付说明（新手请先读这份）**
-- [SSH_RECON_REPORT.md](./SSH_RECON_REPORT.md) —— dsh-ssh 源码侦察报告与裁剪方案
+- [DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md) —— 开发日志与踩坑记录
+- [docs/SSH_RECON_REPORT.md](./docs/SSH_RECON_REPORT.md) —— dsh-ssh 源码侦察报告与裁剪方案
+- [docs/RECON_REPORT.md](./docs/RECON_REPORT.md) —— dsh-code-scan 源码侦察报告
+
+---
+
+## 许可证
+
+本项目采用 [MIT](./LICENSE) 协议发布。请合法、合规、获授权使用。
