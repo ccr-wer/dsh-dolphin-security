@@ -2,15 +2,39 @@
   "name": "dolphin",
   "version": "0.1.0-beta",
   "type": "module",
-  "private": true,
-  "description": "Project Dolphin - 主动巡检型安全防御插件",
+  "private": false,
+  "description": "Dolphin - 主动巡检型安全防御插件。将渗透测试方法论（信息收集→漏洞探测→利用验证→报告）转化为主动防御巡检流程：基于 Semgrep 的扫描层与基于 SSH 的执行层相融合，可对本地目录做静态扫描，也可将扫描命令经 SSH 下发至远程主机执行并回收结构化结果。",
   "license": "MIT",
+  "keywords": [
+    "security",
+    "semgrep",
+    "plugin",
+    "ssh",
+    "ai",
+    "static-analysis",
+    "sast",
+    "vulnerability-scanner",
+    "patrol",
+    "dolphin"
+  ],
   "engines": {
     "node": ">=20"
   },
+  "files": [
+    "dolphin-core.js",
+    "dolphin-patrol.js",
+    "dolphin-ssh-core.js",
+    "dsh-code-scan/lib/scanner.js",
+    "README.md",
+    "README_EN.md",
+    "WINDOWS_PREVIEW_GUIDE.md",
+    "LICENSE"
+  ],
   "scripts": {
     "scan": "node dolphin-core.js",
-    "self-test": "node dolphin-core.js --mock"
+    "self-test": "node dolphin-core.js --mock",
+    "patrol": "node dolphin-patrol.js",
+    "patrol:selftest": "node dolphin-patrol.js"
   },
   "dependencies": {
     "ssh2": "^1.17.0"
