@@ -3,7 +3,7 @@
   "version": "0.1.0-beta",
   "type": "module",
   "private": false,
-  "description": "Dolphin - 主动巡检型安全防御插件。将渗透测试方法论（信息收集→漏洞探测→利用验证→报告）转化为主动防御巡检流程：基于 Semgrep 的扫描层与基于 SSH 的执行层相融合，可对本地目录做静态扫描，也可将扫描命令经 SSH 下发至远程主机执行并回收结构化结果。",
+  "description": "Dolphin - 主动巡检型安全防御插件，支持本地扫描与远程 SSH 巡逻。将渗透测试方法论（信息收集→漏洞探测→利用验证→报告）转化为主动防御巡检流程：基于 Semgrep 的扫描层与基于 SSH 的执行层相融合，可对本地目录做静态扫描，也可将扫描命令经 SSH 下发至远程主机执行并回收结构化结果。",
   "license": "MIT",
   "keywords": [
     "security",
