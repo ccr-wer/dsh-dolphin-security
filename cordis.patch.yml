@@ -1,0 +1,7 @@
+# dsh bundle patch：把本插件声明进 DSH 生态的组合层。
+# 作用：与 DSH 生态保持一致的 bundle 元信息，供 DSH 插件机制识别本包。
+# 说明：Dolphin 核心是独立引擎（本地扫描 + SSH 巡逻），非 cordis 组合插件，
+#       此 patch 仅为生态兼容声明，实际加载由 DSH 的 bundle 机制决定。
+- insert:
+    - id: dolphin
+      name: dsh-dolphin-security
