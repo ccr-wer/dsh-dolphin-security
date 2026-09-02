@@ -2,6 +2,7 @@
   "name": "dsh-dolphin-security",
   "version": "0.1.0",
   "type": "module",
+  "main": "./index.js",
   "private": false,
   "description": "此为 DSH 生态插件。Dolphin - 主动巡检型安全防御插件，支持本地扫描与远程 SSH 巡逻。将渗透测试方法论（信息收集→漏洞探测→利用验证→报告）转化为主动防御巡检流程：基于 Semgrep 的扫描层与基于 SSH 的执行层相融合，可对本地目录做静态扫描，也可将扫描命令经 SSH 下发至远程主机执行并回收结构化结果。",
   "license": "MIT",
@@ -23,6 +24,7 @@
     "node": ">=20"
   },
   "files": [
+    "index.js",
     "dolphin-core.js",
     "dolphin-patrol.js",
     "dolphin-ssh-core.js",
@@ -47,5 +49,9 @@
   },
   "dependencies": {
     "ssh2": "^1.17.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "^0.1.1-rc.2"
   }
 }
