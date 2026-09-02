@@ -193,6 +193,39 @@ Dolphin 采用「眼睛 + 手脚 + 大脑」三层架构：
 
 ---
 
+## 常见问题（FAQ）与排障指南
+
+### 安装 DSH 插件时遇到 pnpm 报错怎么办
+
+**报错现象**（在 `D:\DSH` 上通过 `dsh plugin --profile web add dsh-dolphin-security` 安装时可能出现）：
+
+```
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: ssh2@1.17.0, cpu-features@0.0.10
+dsh: pnpm failed in profile directory D:\DSH\profiles\web
+```
+
+**根因**：pnpm 出于安全策略，默认不允许依赖包执行构建脚本（build scripts），从而拒绝了 `ssh2` 与 `cpu-features` 正常编译，导致 pnpm 以非零状态退出、dsh 认为插件安装失败（依赖已写入但 bundle 未注册）。
+
+**解决办法**：进入 DSH 的 profile 目录（如 `D:\DSH\profiles\web`，即 `pnpm-workspace.yaml` 所在目录），执行：
+
+```bash
+pnpm approve-builds --all
+```
+
+该命令会放行所有待审批的构建脚本（`ssh2`、`cpu-features`），并把 `pnpm-workspace.yaml` 中的 `allowBuilds` 置为 `true`。若希望逐个挑选，可去掉 `--all` 走交互式界面。
+
+如果无法执行 `pnpm approve-builds`，也可以手动编辑该目录下的 `pnpm-workspace.yaml`，将占位符值改为 `true`：
+
+```yaml
+allowBuilds:
+  cpu-features: true
+  ssh2: true
+```
+
+放行后重新执行插件安装（`dsh plugin --profile web add dsh-dolphin-security`）即可成功；可用 `dsh --profile web --dump-config` 检查配置树中是否出现该插件的挂载节点。
+
+---
+
 ## 许可证
 
 本项目采用 [MIT](./LICENSE) 协议发布。请合法、合规、获授权使用。
