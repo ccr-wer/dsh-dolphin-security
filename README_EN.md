@@ -214,6 +214,39 @@ Dolphin itself is released under the **MIT** license.
 
 ---
 
+## FAQ (Frequently Asked Questions) & Troubleshooting
+
+### pnpm errors while installing a DSH plugin
+
+**Error symptom** (may appear when installing via `dsh plugin --profile web add dsh-dolphin-security` under `D:\DSH`):
+
+```
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: ssh2@1.17.0, cpu-features@0.0.10
+dsh: pnpm failed in profile directory D:\DSH\profiles\web
+```
+
+**Root cause**: for security reasons, pnpm refuses to run build scripts of dependencies by default. It therefore blocks `ssh2` and `cpu-features` from compiling, making pnpm exit with a non-zero status so dsh treats the plugin install as failed (the dependency is written but the bundle is never registered).
+
+**Fix**: `cd` into the DSH profile directory (e.g. `D:\DSH\profiles\web` — the directory that holds `pnpm-workspace.yaml`) and run:
+
+```bash
+pnpm approve-builds --all
+```
+
+This approves all pending build scripts (`ssh2`, `cpu-features`) and sets `allowBuilds` to `true` in `pnpm-workspace.yaml`. Drop `--all` for the interactive picker if you want to approve packages one by one.
+
+If `pnpm approve-builds` is unavailable, manually edit `pnpm-workspace.yaml` in that directory and replace the placeholder values with `true`:
+
+```yaml
+allowBuilds:
+  cpu-features: true
+  ssh2: true
+```
+
+Then re-run the plugin install (`dsh plugin --profile web add dsh-dolphin-security`); verify the mount node appears in the config tree with `dsh --profile web --dump-config`.
+
+---
+
 ## License
 
 Released under [MIT](./LICENSE). Use legally, compliantly, and only with proper authorization.
