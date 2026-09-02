@@ -33,7 +33,27 @@ Current release: **v0.1.0-beta** (Windows preview)
 
 ## Installation
 
-### 1. Install dependencies
+### 1. Install dsh-dolphin-security (npm registry or GitHub — pick one)
+
+```bash
+# Option A: npm registry (recommended — published releases)
+npm install dsh-dolphin-security
+
+# Option B: GitHub repository (latest commits)
+npm install git+https://github.com/CCR-WER/dsh-dolphin-security.git
+```
+
+> ⚠️ **Installation constraint**: always install this plugin via `npm install` (from the official npm registry or from the GitHub repository) as shown above. **Do not copy the package directory by hand** — this package is published through a `files` whitelist, and manual copies will be missing runtime files.
+>
+> **Requires the official DSH environment**: dsh-dolphin-security is a DSH (DeepSeek Harness, `@deepseek-ai/dsh`) ecosystem plugin. Once loaded by the official DSH host it registers two agent tools — `dolphin_scan` (local Semgrep scan) and `dolphin_patrol` (remote SSH patrol). Mount it inside an official DSH profile:
+>
+> ```bash
+> dsh plugin --profile web add dsh-dolphin-security
+> ```
+>
+> Outside a DSH host, `dolphin-patrol.js` / `dolphin-core.js` / `dolphin-ssh-core.js` remain directly usable as standalone libraries/CLI (see Features) and do not require a DSH environment.
+
+### 2. Install dependencies (repo development)
 
 ```bash
 npm install
@@ -41,7 +61,7 @@ npm install
 
 > Pulls in `ssh2` (MIT) for remote SSH/SFTP capabilities.
 
-### 2. Prerequisite: install semgrep and add it to PATH
+### 3. Prerequisite: install semgrep and add it to PATH
 
 Dolphin's scanning layer is powered by [semgrep](https://semgrep.dev) (LGPL-2.1). **semgrep must be installed and callable from the command line:**
 

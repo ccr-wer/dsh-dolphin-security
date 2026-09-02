@@ -31,7 +31,27 @@
 
 ## 安装
 
-### 1. 安装项目依赖
+### 1. 安装 dsh-dolphin-security（npm registry 或 GitHub，二选一）
+
+```bash
+# 方式 A：npm registry 安装（推荐，获取已发布版本）
+npm install dsh-dolphin-security
+
+# 方式 B：从 GitHub 仓库安装（获取最新提交）
+npm install git+https://github.com/CCR-WER/dsh-dolphin-security.git
+```
+
+> ⚠️ **安装方式约束**：请务必通过上述 `npm install`（官方 registry 或 GitHub 仓库）方式安装本插件，**不要手工拷贝目录**——本包以 `files` 白名单发布，手工拷贝会缺失运行文件。
+>
+> **依赖官方 DSH 环境**：dsh-dolphin-security 是 DSH（DeepSeek Harness，`@deepseek-ai/dsh`）生态插件，由官方 DSH 宿主加载后向 Agent 注册 `dolphin_scan`（本地 Semgrep 扫描）与 `dolphin_patrol`（远程 SSH 巡逻）两个工具。请在官方 DSH 环境中通过插件命令挂载：
+>
+> ```bash
+> dsh plugin --profile web add dsh-dolphin-security
+> ```
+>
+> 若脱离 DSH 宿主使用，`dolphin-patrol.js` / `dolphin-core.js` / `dolphin-ssh-core.js` 仍可作为独立库/CLI 直接调用（见「核心功能」），无需 DSH 环境。
+
+### 2. 安装项目依赖（仓库开发）
 
 ```bash
 npm install
@@ -39,7 +59,7 @@ npm install
 
 > 依赖 `ssh2`（MIT）用于远程 SSH/SFTP 能力。
 
-### 2. 前提：安装 semgrep 并加入 PATH
+### 3. 前提：安装 semgrep 并加入 PATH
 
 Dolphin 的扫描能力基于 [semgrep](https://semgrep.dev)（LGPL-2.1）。**必须先安装 semgrep 并确保其可在命令行中直接调用**：
 
