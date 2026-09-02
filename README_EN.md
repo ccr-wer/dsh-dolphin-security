@@ -3,7 +3,7 @@
 > Transforming the penetration-testing methodology (Reconnaissance → Vulnerability Detection → Exploitation Validation → Reporting) into a **proactive defense patrol workflow**.
 > Instead of waiting passively for alerts, Dolphin patrols your hosts on schedule — the way a dolphin swims its route.
 
-Current release: **v0.1.0-beta** (Windows preview)
+Current release: **v0.1.1** (stable, includes the DSH plugin adapter entry)
 
 [简体中文](./README.md) | [English](./README_EN.md)
 

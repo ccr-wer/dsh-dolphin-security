@@ -1,6 +1,6 @@
 {
   "name": "dsh-dolphin-security",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "main": "./index.js",
   "private": false,
@@ -60,7 +60,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CCR-WER/dsh-dolphin-security.git"
+    "url": "git+https://github.com/ccr-wer/dsh-dolphin-security.git"
   },
-  "homepage": "https://github.com/CCR-WER/dsh-dolphin-security#readme"
+  "homepage": "https://github.com/ccr-wer/dsh-dolphin-security#readme"
 }
