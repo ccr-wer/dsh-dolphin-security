@@ -19,12 +19,12 @@ const DEFAULT_MAX_FINDINGS = 200
 //   1 = 扫描成功且发现了问题（stdout 里仍是完整 JSON，属于正常情况）
 //   2 = 扫描失败
 // 构建 semgrep 命令行参数（抽成纯函数，便于单测与上层复用）
-// 规则集注入：传入 rulesConfig 时，往命令行加 --config <rulesConfig>
+// 规则集注入：rulesConfig 支持空格分隔多规则包/文件，逐包展开为重复的 --config
 // （原实现只有 ['scan', '--json', targetDir]，依赖 semgrep 默认规则集）
 export function buildSemgrepArgs(targetDir, rulesConfig) {
   const args = ['scan', '--json']
   if (rulesConfig) {
-    args.push('--config', rulesConfig)
+    String(rulesConfig).split(/\s+/).filter(Boolean).forEach((rc) => args.push('--config', rc))
   }
   args.push(targetDir)
   return args

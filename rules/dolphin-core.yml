@@ -1,0 +1,21 @@
+# dolphin-core.yml —— Dolphin 自建核心规则（随仓库分发）
+# 依据：docs/RULESET_RESEARCH.md §四-A —— 官方 registry 的
+# python.lang.security.audit.hardcoded-password-default 已消失，
+# CWE-798（硬编码凭据）在全部社区规则集下漏报，此规则补位。
+# 写法参考 dsh-code-security 的 SEC-301/302，并修复其对
+# JSON 冒号引号风格（"password": "..."）的漏报。
+rules:
+  - id: dolphin.hardcoded-credentials
+    message: 疑似硬编码凭据（密码/令牌/密钥），应改用环境变量或密钥管理服务
+    severity: ERROR
+    languages:
+      - js
+      - python
+      - ts
+    metadata:
+      cwe:
+        - CWE-798
+      confidence: MEDIUM
+    patterns:
+      - pattern-regex: >-
+          (?i)["']?(?:password|passwd|pwd|secret(?:_key)?|api_?key|access_?key|auth_?token)["']?\s*[:=]\s*["'][^"']{4,}["']

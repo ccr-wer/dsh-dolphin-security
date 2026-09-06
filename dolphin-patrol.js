@@ -31,7 +31,11 @@ import { spawnSync } from 'node:child_process'
 // ---- 常量 -----------------------------------------------------------------
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPORTS_DIR = process.env.DOLPHIN_REPORTS_DIR ?? join(__dirname, 'reports')
-const DEFAULT_RULES = 'p/security-audit'
+// 默认规则集（空格分隔多包，--config 逐包展开）：security-audit 覆盖 CWE-78/489，
+// owasp-top-ten 补齐其空白（CWE-79/89/22/95，见 docs/RULESET_RESEARCH.md 实测），
+// rules/dolphin-core.yml 为自建的硬编码凭据规则（官方 registry 的
+// hardcoded-password-default 已消失，CWE-798 全线漏报，故随仓库分发）。
+const DEFAULT_RULES = 'p/security-audit p/owasp-top-ten rules/dolphin-core.yml'
 const DEFAULT_SCAN_TIMEOUT = 120000
 const DEFAULT_MAX_FINDINGS = 200
 
@@ -71,15 +75,18 @@ function shellQuote(value) {
 // 2. buildRemoteScanCommand —— 生成远程 semgrep 扫描命令（纯函数）
 // ----------------------------------------------------------------------------
 // 规则集注入与本地扫描器（scanner.js 的 buildSemgrepArgs）保持同一语义：
-//   有 rulesConfig → semgrep scan --config <rulesConfig> <targetDir> --json
+//   有 rulesConfig → semgrep scan --config <rc1> --config <rc2> ... <targetDir> --json
 //   无 rulesConfig → semgrep scan <targetDir> --json
+// rulesConfig 支持空格分隔多规则包/文件（'p/a p/b rules/x.yml'），逐包展开。
 // semgrepCmd：远端 semgrep 可执行入口。默认 'semgrep'（PATH 解析）；
 //   隔离部署成功后由 provisionRemoteSemgrep 给出显式路径或「前缀」
 //   （如 'PYTHONPATH=<pkg> python3 -m semgrep'），本函数原样拼在首位。
 // ============================================================================
 export function buildRemoteScanCommand(targetDir, rulesConfig, semgrepCmd = 'semgrep') {
   const parts = [semgrepCmd, 'scan']
-  if (rulesConfig) parts.push('--config', shellQuote(rulesConfig))
+  if (rulesConfig) {
+    String(rulesConfig).split(/\s+/).filter(Boolean).forEach((rc) => parts.push('--config', shellQuote(rc)))
+  }
   parts.push(shellQuote(targetDir), '--json')
   return parts.join(' ')
 }
@@ -387,19 +394,33 @@ export async function runPatrol(alias, targetDir, options = {}) {
       return { ok: false, stage: 'detect', host: alias, error: msg(e) }
     }
 
-    //    c) 规则文件部署：rulesConfig 指向本地文件时，远端 semgrep 读不到本地
-    //       路径，必须先上传（旧实现只在上传扫描器的分支里做了，属遗漏）。
+    //    c) 规则文件部署：rulesConfig 逐 token 检查，指向本地文件的（如
+    //       rules/dolphin-core.yml）上传到远端临时目录并改写为远端路径；
+    //       registry 规则包（p/xxx）原样透传。远端 semgrep 读不到控制端本地路径。
     let remoteRules = rulesConfig
     const rulesCleanup = []
-    if (typeof rulesConfig === 'string' && existsSync(resolve(rulesConfig))) {
-      const rulesDir = `/tmp/dolphin-rules-${Date.now()}`
-      try {
-        await engine.exec(alias, `mkdir -p ${shellQuote(rulesDir)}`, PROBE_TIMEOUT, 1)
-        await engine.upload(alias, resolve(rulesConfig), `${rulesDir}/rules.yml`, false)
-        remoteRules = `${rulesDir}/rules.yml`
-        rulesCleanup.push(rulesDir)
-      } catch (e) {
-        return { ok: false, stage: 'preflight', host: alias, error: `规则文件上传失败：${msg(e)}` }
+    if (typeof rulesConfig === 'string' && rulesConfig.trim() !== '') {
+      const tokens = rulesConfig.split(/\s+/).filter(Boolean)
+      const localTokens = tokens.filter((t) => existsSync(resolve(t)))
+      if (localTokens.length) {
+        const rulesDir = `/tmp/dolphin-rules-${Date.now()}`
+        try {
+          await engine.exec(alias, `mkdir -p ${shellQuote(rulesDir)}`, PROBE_TIMEOUT, 1)
+          const mapped = []
+          for (const t of tokens) {
+            if (existsSync(resolve(t))) {
+              const dest = `${rulesDir}/${resolve(t).split(/[\\/]/).pop()}`
+              await engine.upload(alias, resolve(t), dest, false)
+              mapped.push(dest)
+            } else {
+              mapped.push(t)
+            }
+          }
+          remoteRules = mapped.join(' ')
+          rulesCleanup.push(rulesDir)
+        } catch (e) {
+          return { ok: false, stage: 'preflight', host: alias, error: `规则文件上传失败：${msg(e)}` }
+        }
       }
     }
 
@@ -603,9 +624,11 @@ export async function test() {
   const c3 = buildRemoteScanCommand('/var/www/my app', 'p/x')
   check('含空格路径被引号包裹', c3.includes("'/var/www/my app'"), c3)
   const c4 = buildRemoteScanCommand('/x', "p/foo'; rm -rf /tmp/x; #")
-  // 转义正确性：`;` 与 `rm -rf` 必须落在单引号内（作为 --config 的字面参数值），
-  // 而不是裸露出来被 shell 当命令分隔符/命令执行。
-  check('恶意规则集被转义（; 与 rm 被单引号包裹）', c4 === "semgrep scan --config 'p/foo'\\''; rm -rf /tmp/x; #' /x --json", c4)
+  // 多 token 语义：含空格的 rulesConfig 被拆成多个 --config；每段仍经 shellQuote，
+  // 恶意串（rm -rf 等）沦为 --config 的字面参数值，注入被中性化。
+  check('恶意规则集被拆分转义（rm -rf 沦为 config 值）', c4 === "semgrep scan --config 'p/foo'\\'';' --config rm --config -rf --config '/tmp/x;' --config '#' /x --json", c4)
+  const c7 = buildRemoteScanCommand('/x', 'p/security-audit p/owasp-top-ten rules/dolphin-core.yml')
+  check('多规则包逐包展开 --config', c7 === "semgrep scan --config p/security-audit --config p/owasp-top-ten --config rules/dolphin-core.yml /x --json", c7)
 
   // 3. SecurityFinding 映射（复用 extractStructuredFindings + host 维度）
   console.log('\n【3】SecurityFinding 映射')
