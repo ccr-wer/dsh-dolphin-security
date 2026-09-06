@@ -31,3 +31,9 @@ dsh-plugin-hos-forge-v2/
 *.pem
 *.key
 *.p12
+
+# 个人知识库/密钥资产目录（防止任何意外操作导致密钥泄露）
+# 原始路径：D:\MyKnowledge\项目资产\DeepSeek Tess\.env（含 API Key，永不入库）
+MyKnowledge/
+**/DeepSeek Tess/
+**/项目资产/
