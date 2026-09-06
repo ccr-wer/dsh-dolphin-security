@@ -1,1 +1,0 @@
-const n="@deepseek-ai/dsh-subagent-fork-in-process",t="subagent-fork-in-process-invariant",i=["invariants"],e=()=>{},a=s=>Promise.resolve(s.invariants.register(n,e));export{a as apply,i as inject,t as name};

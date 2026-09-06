@@ -3,11 +3,24 @@
 # 依赖
 node_modules/
 
-# 扫描报告（可能包含未来的扫描结果与临时敏感数据）
+# 扫描报告（可能包含扫描结果与临时敏感数据，绝不入库）
 reports/
 
 # 日志
 *.log
+
+# 测试脚本（本地保留，不随开源仓库发布）
+test-ssh-hosts.js
+
+# 锁文件（库项目按惯例不提交，由使用方自行生成）
+package-lock.json
+
+# 打包产物
+*.tgz
+
+# 参考用的第三方源码（已完成历史使命；许可文本见 THIRD_PARTY_LICENSES/）
+dsh-web/
+dsh-plugin-hos-forge-v2/
 
 # macOS
 .DS_Store

@@ -22,10 +22,32 @@
 
 | 项目 | 要求 |
 |---|---|
-| 操作系统 | Windows 10 / 11 x64 |
+| 操作系统 | **跨平台**：Windows 10 / 11、Linux、macOS、WSL2（详见下方「跨平台支持」） |
 | Node.js | **>= 20**（推荐 20 LTS 或 22 LTS） |
 | 包管理器 | npm（随 Node.js 一并安装） |
-| 静态分析引擎 | **semgrep**（见下方安装指引） |
+| 静态分析引擎 | **semgrep**（见下方安装指引；远端缺失时插件可自动隔离部署） |
+
+---
+
+## 跨平台支持
+
+Dolphin 可跨操作系统使用：**Windows / Linux / WSL / macOS**（Node.js >= 20 即可），不依赖任何 OS 专属特性——
+
+- **零硬编码路径**：所有数据路径由运行时 API（`os.homedir()`、`os.tmpdir()`、模块自身位置）推导，Windows 与 POSIX 路径通吃。
+- **SSH 层纯 JS**：基于 ssh2（纯 JS 实现，无平台专属二进制），控制端与目标端可以是任意操作系统组合——例如 Linux 控制端扫描 Windows 目标、Windows 控制端扫描 Linux 目标，双向均已实测。
+- **远端命令 POSIX 化**：下发给远端的全部命令经严格 POSIX 语法校验（`dash -n` 逐条通过），并做单引号转义防注入。
+- **实测矩阵**：Windows 控制端 ↔ Linux/WSL 目标端、Linux（WSL）控制端 ↔ Windows 目标端的完整巡逻闭环（健康检查 → 扫描 → 报告存档）全部验证通过。
+
+### 数据与路径（环境变量）
+
+| 环境变量 | 用途 | 默认值 |
+|---|---|---|
+| `DOLPHIN_HOME` | 主机库等数据目录根 | 未设置时依次回退 `DSH_HOME`、`~/.dolphin` |
+| `DSH_HOME` | DSH 生态统一数据根（Dolphin 兼容读取） | `~/.dsh` |
+| `DOLPHIN_REPORTS_DIR` | 巡逻报告输出目录 | `<插件目录>/reports/` |
+| `DOLPHIN_SEMGREP_CACHE` | 远端部署用 Linux wheel 便携包缓存 | `~/.dolphin/semgrep-wheel-cache` |
+
+主机库文件为 `<数据根>/dolphin-ssh-hosts.json`（原子写入、0600 权限语义）；巡检报告属于敏感数据，已被 `.gitignore` 排除，不入库。
 
 ---
 
@@ -166,6 +188,29 @@ Dolphin 采用「眼睛 + 手脚 + 大脑」三层架构：
 | **扫描层（眼睛）** | `dolphin-core.js` | 基于 Semgrep 的扫描封装，提供统一 SecurityFinding 数据模型 |
 | **执行层（手脚）** | `dolphin-ssh-core.js` | 基于 Apache-2.0 许可的 dsh-ssh 独立封装的 SSH 引擎，提供 exec / cluster / upload / download / test |
 | **融合控制器（大脑）** | `dolphin-patrol.js` | 将扫描命令经 SSH 下发至远程主机，回收 JSON 并结构化存档 |
+
+---
+
+## 🔐 远程扫描逻辑优化（安全部署）
+
+> 远端工具部署已全面重构：**本插件采用隔离技术（pipx / venv / 便携二进制包）自动部署远端 semgrep，绝不直接污染生产系统。**
+> 全链路**禁止** `sudo`、**禁止** `pip install --break-system-packages`、**禁止**任何写入系统 site-packages 的操作——
+> 每条部署命令下发前都会经过硬校验（`assertNoPrivilegeEscalation`），命中红线直接终止巡逻。
+> 优化历史：旧的「上传 node 脚本」回退路径已被移除，替换为下述真正可交付 semgrep 的三级隔离部署链。
+
+当目标主机 PATH 中没有 semgrep 时，巡逻器按以下优先级自动部署（每一步都先输出预检结论：
+策略、上传字节数、远端下载量估算与风险等级）：
+
+| 优先级 | 策略 | 隔离方式 | 代价 |
+|---|---|---|---|
+| 1 | **pipx** | `pipx install semgrep`，装入用户级隔离区（`~/.local/share/pipx`），持久可复用 | 远端从 PyPI 拉取 ≈30MB |
+| 2 | **临时 venv** | `/tmp/dolphin-venv-<ts>` 内 `pip install semgrep`，完全隔离 | 同上；venv 构建约 30s |
+| 3 | **便携包（最终回退）** | 本地缓存 Linux wheel（约 40–60MB）经 SFTP 上传，远端 `pip --no-index --target` 离线安装进 `/tmp` 隔离目录；远端无 pip 时退化为 zipfile 解包 + `PYTHONPATH` 直跑 | SFTP 上传流量（预检中明确给出字节数） |
+
+- **自动清理**：临时 venv、便携包目录、上传的规则文件（`/tmp/dolphin-*`）在扫描结束后自动 `rm -rf` 回收；
+  便携 wheel 的**本地缓存**保留复用（可用环境变量 `DOLPHIN_SEMGREP_CACHE` 指定位置，默认 `~/.dolphin/semgrep-wheel-cache`）。
+- **诚实降级**：远端既无 pipx 又无 python3 时，巡逻**明确失败并给出原因**，绝不悄悄使用提权手段。
+- 缓存里的 semgrep 版本在首次下载时锁定；如需升级，清空缓存目录后重跑即可。
 
 ---
 

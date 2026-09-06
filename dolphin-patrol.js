@@ -11,16 +11,22 @@
 //   node dolphin-patrol.js                        自检（无需真实主机）
 //   node dolphin-patrol.js --local <目录>          本地真实扫描（需本机 semgrep）
 //   node dolphin-patrol.js --patrol <alias> <远程目录>  远程巡逻（需先建主机）
+//
+// 远端 semgrep 部署策略（安全红线：绝不用 sudo / --break-system-packages）：
+//   预装直用 → pipx（用户级隔离）→ /tmp 临时 venv → 便携 wheel 包 SFTP 上传
+//   （离线安装到隔离目录）。所有临时目录在扫描结束后自动清理。
+//   便携包缓存目录：DOLPHIN_SEMGREP_CACHE（默认 ~/.dolphin/semgrep-wheel-cache）。
 // ============================================================================
 
 import { createHostStore, createSshEngine } from './dolphin-ssh-core.js'
 import { scanDirectory } from './dsh-code-scan/lib/scanner.js'
 // 严重级别排序/统计/时间戳统一复用 dolphin-core 的实现（此前两处各存一份副本）
 import { extractStructuredFindings, sortFindings, summarize, timestamp } from './dolphin-core.js'
-import { mkdirSync, writeFileSync, existsSync, rmSync } from 'node:fs'
+import { mkdirSync, writeFileSync, existsSync, rmSync, statSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { tmpdir } from 'node:os'
+import { tmpdir, homedir } from 'node:os'
+import { spawnSync } from 'node:child_process'
 
 // ---- 常量 -----------------------------------------------------------------
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -28,6 +34,20 @@ const REPORTS_DIR = process.env.DOLPHIN_REPORTS_DIR ?? join(__dirname, 'reports'
 const DEFAULT_RULES = 'p/security-audit'
 const DEFAULT_SCAN_TIMEOUT = 120000
 const DEFAULT_MAX_FINDINGS = 200
+
+// 远端 semgrep 隔离部署：安装类操作（pipx / venv 内 pip）可能要从 PyPI 拉取
+// semgrep 及其依赖（≈30MB），给足预算；探测类命令仍是秒级。
+const PROBE_TIMEOUT = 8000
+const PIPX_INSTALL_TIMEOUT = 300000
+const VENV_SETUP_TIMEOUT = 300000
+const PORTABLE_INSTALL_TIMEOUT = 300000
+
+// 便携包本地缓存目录：跨平台巡逻只下载一次 Linux wheel，之后走本地缓存。
+// 可用环境变量 DOLPHIN_SEMGREP_CACHE 覆盖；默认放用户目录，绝不写进仓库。
+const WHEEL_CACHE_DIR = process.env.DOLPHIN_SEMGREP_CACHE ?? join(homedir(), '.dolphin', 'semgrep-wheel-cache')
+
+// 便携包的目标平台：仅支持 Linux x86_64 远端（其余平台走 pipx/venv 或诚实报错）。
+const WHEEL_PLATFORMS = ['manylinux2014_x86_64', 'manylinux_2_17_x86_64', 'manylinux_2_28_x86_64']
 
 // 统一入口：把上游能力一并 re-export，调用方只需 import 这一个文件。
 export { createHostStore, createSshEngine } from './dolphin-ssh-core.js'
@@ -53,9 +73,12 @@ function shellQuote(value) {
 // 规则集注入与本地扫描器（scanner.js 的 buildSemgrepArgs）保持同一语义：
 //   有 rulesConfig → semgrep scan --config <rulesConfig> <targetDir> --json
 //   无 rulesConfig → semgrep scan <targetDir> --json
+// semgrepCmd：远端 semgrep 可执行入口。默认 'semgrep'（PATH 解析）；
+//   隔离部署成功后由 provisionRemoteSemgrep 给出显式路径或「前缀」
+//   （如 'PYTHONPATH=<pkg> python3 -m semgrep'），本函数原样拼在首位。
 // ============================================================================
-export function buildRemoteScanCommand(targetDir, rulesConfig) {
-  const parts = ['semgrep', 'scan']
+export function buildRemoteScanCommand(targetDir, rulesConfig, semgrepCmd = 'semgrep') {
+  const parts = [semgrepCmd, 'scan']
   if (rulesConfig) parts.push('--config', shellQuote(rulesConfig))
   parts.push(shellQuote(targetDir), '--json')
   return parts.join(' ')
@@ -68,39 +91,256 @@ async function detectRemoteSemgrep(engine, alias) {
   const probe = await engine.exec(
     alias,
     'command -v semgrep >/dev/null 2>&1 && printf HAS || printf NONE',
-    8000,
+    PROBE_TIMEOUT,
     1,
   )
   return probe.success && probe.stdout.includes('HAS')
 }
 
 // ============================================================================
-// 4. buildRemoteRunnerSource —— 生成远端 fallback 执行脚本源码（纯函数）
+// 3.5 远端 semgrep 隔离部署层（pipx → venv → 便携包，绝不提权）
 // ----------------------------------------------------------------------------
-// 远端没有 semgrep 时，把本地 dsh-code-scan 的扫描器「部署」到远端用 node 跑。
-// 注意两点关键设计：
-//   a) 上传时把 scanner.js 重命名为 scanner.mjs：scanner.js 是 ESM（import 语法），
-//      但远端临时目录没有 package.json 的 "type":"module"，.js 会被当 CJS 解析
-//      而报错；.mjs 后缀强制按 ESM 解析。
-//   b) targetDir / rulesConfig 用 JSON.stringify 写死进脚本，而不是走命令行参数，
-//      彻底绕开 shell 转义问题。
-// 诚实边界：scanner.js 底层仍调用 semgrep 二进制（execFile('semgrep')），所以
-// 这条 fallback 仅在「远端有 node 且 semgrep 可用但不一定在 PATH」时才有意义；
-// 若远端完全没有 semgrep，最终仍会得到「未检测到 semgrep」的降级错误。
+// 安全红线（写入 README「安全部署」章节）：
+//   * 全链路【禁止】sudo、【禁止】pip install --break-system-packages、
+//     【禁止】任何写入系统 site-packages 的操作。
+//   * assertNoPrivilegeEscalation 是硬闸门：每条远端命令下发前都会过一遍，
+//     命中红线直接抛错，宁可失败也绝不污染生产系统。
+//
+// 策略优先级（风险/收益从高到低）：
+//   1. preinstalled —— 远端 PATH 里已有 semgrep，零成本直接用。
+//   2. pipx        —— 有 pipx 则 `pipx install semgrep`：装进用户级隔离区
+//                     （~/.local/share/pipx），持久、可复用、不碰系统 Python。
+//                     代价：远端需从 PyPI 下载 ≈30MB，上传 0 字节。
+//   3. venv        —— 无 pipx 但有 python3 时，建临时虚拟环境
+//                     /tmp/dolphin-venv-<ts> 再在里面 pip install semgrep；
+//                     完全隔离，扫描结束随临时目录一起清理。
+//                     代价：同上 ≈30MB 远端下载 + venv 构建 ≈30s。
+//   4. portable    —— 最终回退：远端不装任何东西。用本地缓存的 Linux wheel
+//                     包（DOLPHIN_SEMGREP_CACHE，首次自动 pip download，之后
+//                     走缓存）经 SFTP 上传到远端临时目录，`pip --no-index
+//                     --target` 离线安装进隔离目录（远端无 pip 时退化为
+//                     zipfile 解包 + PYTHONPATH 直跑）。上传字节数在预检中
+//                     明确给出，扫描结束随临时目录一起清理。
 // ============================================================================
-function buildRemoteRunnerSource(targetDir, rulesConfig) {
-  return [
-    "import { scanDirectory } from './scanner.mjs'",
-    `const targetDir = ${JSON.stringify(targetDir)}`,
-    `const rulesConfig = ${JSON.stringify(rulesConfig)}`,
-    'const outcome = await scanDirectory(targetDir, { rulesConfig, raw: true })',
-    'process.stdout.write(JSON.stringify({',
-    '  ok: outcome.ok,',
-    '  message: outcome.message ?? null,',
-    '  results: outcome.rawResults ?? [],',
-    '}))',
-  ].join('\n')
+
+// 硬闸门：任何含提权/系统污染语义的命令一律拦截。
+export function assertNoPrivilegeEscalation(command) {
+  const s = String(command)
+  if (/\bsudo\b/.test(s)) {
+    throw new Error(`安全红线：检测到 sudo，已阻止下发 —— ${s.slice(0, 120)}`)
+  }
+  if (s.includes('--break-system-packages')) {
+    throw new Error(`安全红线：检测到 --break-system-packages，已阻止下发 —— ${s.slice(0, 120)}`)
+  }
+  return true
 }
+
+// 统一的安全下发通道：所有部署类命令都必须走这里。
+async function safeExec(engine, alias, command, timeoutMs) {
+  assertNoPrivilegeEscalation(command)
+  return engine.exec(alias, command, timeoutMs, 1)
+}
+
+// 探测远端某个能力是否存在（command -v 的探测命令，固定模板防注入）。
+async function probeHasCommand(engine, alias, bin) {
+  if (!/^[A-Za-z0-9_.-]+$/.test(bin)) throw new Error(`非法探测目标：${bin}`)
+  const r = await safeExec(engine, alias, `command -v ${bin} >/dev/null 2>&1 && printf HAS || printf NONE`, PROBE_TIMEOUT)
+  return r.success && r.stdout.includes('HAS')
+}
+
+// 风险/收益评估（纯函数）：在真正下发部署命令之前给出可读的预检结论。
+export function assessDeploymentPlan(strategy, { uploadBytes = 0, remoteDownloadBytes = 0 } = {}) {
+  const mb = (n) => `${(n / 1024 / 1024).toFixed(1)}MB`
+  const base = { strategy, uploadBytes, remoteDownloadBytes }
+  switch (strategy) {
+    case 'preinstalled':
+      return { ...base, riskLevel: '无', rationale: '远端已有 semgrep，零部署成本' }
+    case 'pipx':
+      return { ...base, riskLevel: '低', rationale: `上传 0 字节；远端从 PyPI 拉取 ≈${mb(remoteDownloadBytes)} 装入用户级隔离区（pipx），可复用、不碰系统 Python` }
+    case 'venv':
+      return { ...base, riskLevel: '低', rationale: `上传 0 字节；远端拉取 ≈${mb(remoteDownloadBytes)} 装入 /tmp 临时 venv，扫描结束自动清理` }
+    case 'portable':
+      return { ...base, riskLevel: '中（有上传流量）', rationale: `SFTP 上传 ≈${mb(uploadBytes)} 的 wheel 包；远端仅离线安装到 /tmp 隔离目录，扫描结束自动清理` }
+    default:
+      return { ...base, riskLevel: '未知', rationale: '未知策略' }
+  }
+}
+
+// 本地准备 Linux wheel 便携包（带缓存）：首次用本机 pip download 按
+// manylinux 平台拉取 semgrep 及全部依赖 wheel，之后命中缓存零下载。
+// 返回 { files:[{path,size}], totalBytes, fromCache, error? }。
+export function prepareWheelBundle(cacheDir = WHEEL_CACHE_DIR, pythonVersion = '3.11') {
+  mkdirSync(cacheDir, { recursive: true })
+  const existing = readdirSync(cacheDir).filter((f) => f.endsWith('.whl'))
+  if (existing.length > 0) {
+    const files = existing.map((f) => ({ path: join(cacheDir, f), size: statSync(join(cacheDir, f)).size }))
+    return { files, totalBytes: files.reduce((a, f) => a + f.size, 0), fromCache: true }
+  }
+  // 本机 pip download：--only-binary + --platform 强制拉 Linux x86_64 wheel，
+  // 与本机操作系统无关（Windows 本机也能为 Linux 远端备货）。
+  const args = [
+    '-m', 'pip', 'download', 'semgrep',
+    '--only-binary=:all:',
+    ...WHEEL_PLATFORMS.flatMap((p) => [`--platform=${p}`]),
+    `--python-version=${pythonVersion}`,
+    '--implementation=cp',
+    `--abi=cp${pythonVersion.replace('.', '')}`, '--abi=abi3', '--abi=none',
+    '-d', cacheDir, '--quiet',
+  ]
+  let last = null
+  for (const bin of ['python', 'python3']) {
+    const r = spawnSync(bin, args, { encoding: 'utf8' })
+    if (r.status === 0) { last = r; break }
+    last = r
+  }
+  const wheels = readdirSync(cacheDir).filter((f) => f.endsWith('.whl'))
+  if (wheels.length === 0) {
+    return { files: [], totalBytes: 0, fromCache: false, error: `pip download 失败：${(last?.stderr || last?.error?.message || '未知原因').slice(0, 200)}` }
+  }
+  const files = wheels.map((f) => ({ path: join(cacheDir, f), size: statSync(join(cacheDir, f)).size }))
+  return { files, totalBytes: files.reduce((a, f) => a + f.size, 0), fromCache: false }
+}
+
+// 便携包离线安装的远端命令组（纯函数，便于单测）。
+// 优先 pip --no-index --target（隔离目录，不碰系统）；无 pip 则 zipfile 解包。
+export function buildPortableInstallCommands(bundleDir, pkgDir) {
+  return {
+    viaPip: `python3 -m pip install --no-index --no-cache-dir --find-links ${shellQuote(bundleDir)} --target ${shellQuote(pkgDir)} semgrep`,
+    viaZipfile: `python3 -c "import zipfile,glob; [zipfile.ZipFile(w).extractall(${JSON.stringify(pkgDir)}) for w in glob.glob(${JSON.stringify(bundleDir)} + '/*.whl')]"`,
+  }
+}
+
+/**
+ * 远端 semgrep 隔离部署主入口。已探测到远端无 semgrep 时调用。
+ * （导出：供上层工具复用与实测；常规巡逻由 runPatrol 内部调用。）
+ * @returns {Promise<{ok:boolean, strategy?:string, semgrepCmd?:string,
+ *   uploadBytes:number, remoteDownloadBytes:number, cleanupDirs:string[],
+ *   notes:string[], error?:string}>}
+ */
+export async function provisionRemoteSemgrep(engine, alias, { console } = {}) {
+  const out = { ok: false, uploadBytes: 0, remoteDownloadBytes: 0, cleanupDirs: [], notes: [] }
+  const say = (s) => { out.notes.push(s); console?.log?.(`  [deploy] ${s}`) }
+
+  // ---- 策略 2：pipx（用户级隔离，持久可复用）--------------------------------
+  try {
+    if (await probeHasCommand(engine, alias, 'pipx')) {
+      say('策略 pipx：检测到 pipx，安装 semgrep 到用户级隔离区（远端拉取 ≈30MB，预计 1-3 分钟）')
+      const inst = await safeExec(engine, alias, 'pipx install semgrep', PIPX_INSTALL_TIMEOUT)
+      if (inst.exitCode === 0 || /already installed/i.test(inst.stdout + inst.stderr)) {
+        const v = await safeExec(engine, alias, '$HOME/.local/bin/semgrep --version', PROBE_TIMEOUT)
+        if (v.exitCode === 0) {
+          out.ok = true; out.strategy = 'pipx'; out.semgrepCmd = '$HOME/.local/bin/semgrep'
+          out.remoteDownloadBytes = 30 * 1024 * 1024
+          say('策略 pipx：安装并验证成功')
+          return out
+        }
+        say('策略 pipx：安装命令成功但 semgrep --version 验证失败，转下一策略')
+      } else {
+        say(`策略 pipx：安装失败（${(inst.stderr || inst.stdout || '').slice(0, 120)}），转下一策略`)
+      }
+    } else {
+      say('策略 pipx：远端无 pipx，跳过')
+    }
+  } catch (e) { say(`策略 pipx：异常（${msg(e)}），转下一策略`) }
+
+  // ---- 策略 3：临时 venv（/tmp 隔离，扫描结束清理）--------------------------
+  let venvDir = null
+  try {
+    if (await probeHasCommand(engine, alias, 'python3')) {
+      venvDir = `/tmp/dolphin-venv-${Date.now()}`
+      say(`策略 venv：构建临时虚拟环境 ${venvDir}（远端拉取 ≈30MB，预计 1-3 分钟）`)
+      const mk = await safeExec(engine, alias, `python3 -m venv ${shellQuote(venvDir)}`, VENV_SETUP_TIMEOUT)
+      if (mk.exitCode === 0) {
+        out.cleanupDirs.push(venvDir)
+        const pi = await safeExec(engine, alias, `${shellQuote(venvDir + '/bin/pip')} install --quiet semgrep`, VENV_SETUP_TIMEOUT)
+        if (pi.exitCode === 0) {
+          const v = await safeExec(engine, alias, `${shellQuote(venvDir + '/bin/semgrep')} --version`, PROBE_TIMEOUT)
+          if (v.exitCode === 0) {
+            out.ok = true; out.strategy = 'venv'; out.semgrepCmd = shellQuote(venvDir + '/bin/semgrep')
+            out.remoteDownloadBytes = 30 * 1024 * 1024
+            say('策略 venv：安装并验证成功')
+            return out
+          }
+          say('策略 venv：pip 安装成功但 semgrep --version 验证失败，转下一策略')
+        } else {
+          say(`策略 venv：pip install 失败（${(pi.stderr || pi.stdout || '').slice(0, 120)}），转下一策略`)
+        }
+      } else {
+        say(`策略 venv：python3 -m venv 失败（${(mk.stderr || mk.stdout || '').slice(0, 120)}，远端可能缺 python3-venv），转下一策略`)
+      }
+    } else {
+      say('策略 venv：远端无 python3，跳过')
+    }
+  } catch (e) { say(`策略 venv：异常（${msg(e)}），转下一策略`) }
+
+  // ---- 策略 4：便携包 SFTP 上传（远端零安装、零系统写入）--------------------
+  let bundleDir = null
+  try {
+    if (!(await probeHasCommand(engine, alias, 'python3'))) {
+      say('策略 portable：远端无 python3，无法运行任何形态的 semgrep，全部策略失败')
+      out.error = '远端无 semgrep，且无 pipx / python3，无法以任何隔离方式部署（拒绝使用 sudo / --break-system-packages）'
+      return out
+    }
+    // 远端 python 版本决定 wheel 选择（major*100+minor → '3.12' 形式）
+    const pv = await safeExec(engine, alias, 'python3 -c "import sys;print(\'%d.%d\' % sys.version_info[:2])"', PROBE_TIMEOUT)
+    const pyVer = /3\.\d+/.test(pv.stdout.trim()) ? pv.stdout.trim().match(/3\.\d+/)[0] : '3.11'
+
+    say(`策略 portable：准备本地 wheel 便携包（目标平台 manylinux x86_64 / python ${pyVer}）`)
+    const bundle = prepareWheelBundle(WHEEL_CACHE_DIR, pyVer)
+    if (bundle.error || bundle.files.length === 0) {
+      out.error = `便携包准备失败：${bundle.error ?? '缓存为空且下载失败'}；可手动执行 pip download semgrep --only-binary=:all: --platform manylinux2014_x86_64 --python-version ${pyVer} -d ${WHEEL_CACHE_DIR}`
+      return out
+    }
+    out.uploadBytes = bundle.totalBytes
+    say(`策略 portable：共 ${bundle.files.length} 个 wheel、${(bundle.totalBytes / 1024 / 1024).toFixed(1)}MB（${bundle.fromCache ? '本地缓存命中' : '首次下载并缓存'}），开始 SFTP 上传`)
+
+    bundleDir = `/tmp/dolphin-wheelbundle-${Date.now()}`
+    const pkgDir = `/tmp/dolphin-sempkg-${Date.now()}`
+    out.cleanupDirs.push(bundleDir, pkgDir)
+    await safeExec(engine, alias, `mkdir -p ${shellQuote(bundleDir)}`, PROBE_TIMEOUT)
+    for (const f of bundle.files) {
+      await engine.upload(alias, f.path, `${bundleDir}/${f.path.split(/[\\/]/).pop()}`, false)
+    }
+    say('策略 portable：上传完成，离线安装到 /tmp 隔离目录（--no-index --target，不碰系统）')
+
+    const cmds = buildPortableInstallCommands(bundleDir, pkgDir)
+    let ins = await safeExec(engine, alias, cmds.viaPip, PORTABLE_INSTALL_TIMEOUT)
+    let semgrepCmd = `PYTHONPATH=${pkgDir} ${pkgDir}/bin/semgrep`
+    if (ins.exitCode !== 0) {
+      say(`策略 portable：pip 离线安装不可用（${(ins.stderr || ins.stdout || '').slice(0, 120)}），退化为 zipfile 解包`)
+      ins = await safeExec(engine, alias, cmds.viaZipfile, PORTABLE_INSTALL_TIMEOUT)
+      semgrepCmd = `PYTHONPATH=${pkgDir} python3 -m semgrep`
+    }
+    const v = await safeExec(engine, alias, `${semgrepCmd} --version`, PROBE_TIMEOUT)
+    if (ins.exitCode === 0 && v.exitCode === 0) {
+      out.ok = true; out.strategy = 'portable'; out.semgrepCmd = semgrepCmd
+      say('策略 portable：离线安装并验证成功')
+      return out
+    }
+    out.error = `便携包安装/验证失败：${(ins.stderr || ins.stdout || v.stderr || '').slice(0, 200)}`
+    return out
+  } catch (e) {
+    out.error = `策略 portable：异常（${msg(e)}）`
+    return out
+  } finally {
+    // 便携包中途失败也要回收已上传的临时目录（venv 目录若已建同样回收）。
+    if (!out.ok && out.cleanupDirs.length) {
+      try {
+        await engine.exec(alias, `rm -rf ${out.cleanupDirs.map(shellQuote).join(' ')}`, 15000, 1)
+        out.cleanupDirs = []
+      } catch { /* 尽力而为：回收失败不掩盖主错误 */ }
+    }
+  }
+}
+
+// ============================================================================
+// 4. （已并入 3.5）原「node runner fallback」说明
+// ----------------------------------------------------------------------------
+// 旧方案在远端无 semgrep 时上传 scanner.mjs + runner.mjs 用 node 执行，但
+// scanner.js 底层仍调用 semgrep 二进制 —— 远端真没 semgrep 时它必然失败，
+// 语义上是死路径。现由 3.5 的隔离部署层（pipx → venv → 便携包）完整取代：
+// 三条策略都能在「远端无 semgrep」时真正交付可用的 semgrep。
+// ============================================================================
 
 // ============================================================================
 // 5. runPatrol —— 巡逻闭环
@@ -122,6 +362,8 @@ export async function runPatrol(alias, targetDir, options = {}) {
   // （测试用）由调用方负责释放，这里不越权关闭。
   const injectedEngine = options.engine !== undefined
   const engine = injectedEngine ? options.engine : createSshEngine(options.store ?? createHostStore())
+  // 部署记录：策略/字节量/待清理目录。声明在 try 外，finally 的自动清理要读它。
+  let deploy = null
 
   try {
     // 1. 连通性检查（echo ok，5s 预算）
@@ -130,7 +372,14 @@ export async function runPatrol(alias, targetDir, options = {}) {
       return { ok: false, stage: 'healthcheck', host: alias, error: check.error }
     }
 
-    // 2. 探测远程是否装了 semgrep
+    // 2. 预检（最迟在部署/下发扫描之前做完）：
+    //    a) 远端目标目录存在性 —— 避免白装一套 semgrep 才发现扫了个空路径。
+    const pf = await engine.exec(alias, `test -d ${shellQuote(targetDir)} && printf OK || printf MISSING`, PROBE_TIMEOUT, 1)
+    if (!pf.success || !pf.stdout.includes('OK')) {
+      return { ok: false, stage: 'preflight', host: alias, error: `远端目录不存在或不可访问：${targetDir}` }
+    }
+
+    //    b) 探测远程是否装了 semgrep
     let hasSemgrep = false
     try {
       hasSemgrep = await detectRemoteSemgrep(engine, alias)
@@ -138,12 +387,46 @@ export async function runPatrol(alias, targetDir, options = {}) {
       return { ok: false, stage: 'detect', host: alias, error: msg(e) }
     }
 
-    // 3. 执行远程扫描
+    //    c) 规则文件部署：rulesConfig 指向本地文件时，远端 semgrep 读不到本地
+    //       路径，必须先上传（旧实现只在上传扫描器的分支里做了，属遗漏）。
+    let remoteRules = rulesConfig
+    const rulesCleanup = []
+    if (typeof rulesConfig === 'string' && existsSync(resolve(rulesConfig))) {
+      const rulesDir = `/tmp/dolphin-rules-${Date.now()}`
+      try {
+        await engine.exec(alias, `mkdir -p ${shellQuote(rulesDir)}`, PROBE_TIMEOUT, 1)
+        await engine.upload(alias, resolve(rulesConfig), `${rulesDir}/rules.yml`, false)
+        remoteRules = `${rulesDir}/rules.yml`
+        rulesCleanup.push(rulesDir)
+      } catch (e) {
+        return { ok: false, stage: 'preflight', host: alias, error: `规则文件上传失败：${msg(e)}` }
+      }
+    }
+
+    // 3. 确定 semgrep 入口：预装直用；缺失则走隔离部署链（pipx→venv→便携包）。
+    //    部署前输出预检结论：策略、上传字节、远端下载量、风险等级与处置。
+    if (hasSemgrep) {
+      deploy = { ok: true, strategy: 'preinstalled', semgrepCmd: 'semgrep', uploadBytes: 0, remoteDownloadBytes: 0, cleanupDirs: rulesCleanup, notes: ['远端已预装 semgrep，零部署成本'] }
+    } else {
+      deploy = await provisionRemoteSemgrep(engine, alias)
+      if (deploy.ok) deploy.cleanupDirs.push(...rulesCleanup)
+      if (!deploy.ok) {
+        return { ok: false, stage: 'deploy', host: alias, error: deploy.error, deploy: { strategy: '失败', notes: deploy.notes } }
+      }
+    }
+    if (!hasSemgrep) {
+      const plan = assessDeploymentPlan(deploy.strategy, deploy)
+      console.log(`[Dolphin] 部署预检：策略=${plan.strategy} | 上传 ${plan.uploadBytes} 字节 | 远端下载 ≈${(plan.remoteDownloadBytes / 1024 / 1024).toFixed(1)}MB | 风险=${plan.riskLevel}`)
+      console.log(`[Dolphin] 预检结论：${plan.rationale}`)
+      for (const n of deploy.notes) console.log(`[Dolphin]   ${n}`)
+    }
+
+    // 4. 执行远程扫描
     //    attempts 固定传 1：扫描是只读幂等操作，断线重连重放只会浪费一次完整扫描，
     //    宁可失败上报，也不静默重扫。
     let rawResults
-    if (hasSemgrep) {
-      const cmd = buildRemoteScanCommand(targetDir, rulesConfig)
+    {
+      const cmd = buildRemoteScanCommand(targetDir, remoteRules, deploy.semgrepCmd)
       let r
       try {
         r = await engine.exec(alias, cmd, scanTimeoutMs, 1)
@@ -168,47 +451,6 @@ export async function runPatrol(alias, targetDir, options = {}) {
         return { ok: false, stage: 'parse', host: alias, error: '远程输出无法解析为 JSON（可能被截断或版本不兼容）' }
       }
       rawResults = parsed.results ?? []
-    } else {
-      // 远端无 semgrep：把本地扫描器 + 规则文件部署到远端临时目录，用 node 执行。
-      const remoteBase = `/tmp/dolphin-patrol-${Date.now()}`
-      try {
-        await engine.exec(alias, `mkdir -p ${shellQuote(remoteBase)}`, 5000, 1)
-        // 上传扫描器（远端重命名为 .mjs 强制 ESM，见 buildRemoteRunnerSource 注释）
-        const localScanner = resolve(__dirname, 'dsh-code-scan/lib/scanner.js')
-        await engine.upload(alias, localScanner, `${remoteBase}/scanner.mjs`, false)
-        // 若 rulesConfig 指向一个本地规则文件，把它一并上传，远端改用该文件
-        let remoteRules = rulesConfig
-        if (typeof rulesConfig === 'string' && existsSync(resolve(rulesConfig))) {
-          await engine.upload(alias, resolve(rulesConfig), `${remoteBase}/rules.yml`, false)
-          remoteRules = `${remoteBase}/rules.yml`
-        }
-        // 生成 runner.mjs 上传（本地临时文件，跑完删除）
-        const runnerLocal = join(tmpdir(), `dolphin-patrol-runner-${Date.now()}.mjs`)
-        writeFileSync(runnerLocal, buildRemoteRunnerSource(targetDir, remoteRules), 'utf8')
-        try {
-          await engine.upload(alias, runnerLocal, `${remoteBase}/runner.mjs`, false)
-        } finally {
-          rmSync(runnerLocal, { force: true })
-        }
-        // 远端执行
-        const rr = await engine.exec(alias, `node ${shellQuote(`${remoteBase}/runner.mjs`)}`, scanTimeoutMs, 1)
-        if (rr.exitCode !== 0) {
-          return { ok: false, stage: 'scan', host: alias, error: `远端扫描脚本退出码 ${rr.exitCode}：${(rr.stderr || '').slice(0, 300)}` }
-        }
-        let parsed
-        try {
-          parsed = JSON.parse(rr.stdout)
-        } catch {
-          return { ok: false, stage: 'parse', host: alias, error: '远端扫描脚本输出无法解析为 JSON' }
-        }
-        if (parsed.ok !== true) {
-          // scanner.js 在远端报错（例如仍未检测到 semgrep），诚实降级回传
-          return { ok: false, stage: 'scan', host: alias, error: parsed.message || '远端扫描失败' }
-        }
-        rawResults = parsed.results ?? []
-      } catch (e) {
-        return { ok: false, stage: 'deploy', host: alias, error: msg(e) }
-      }
     }
 
     // 4. 映射为 Dolphin 统一 SecurityFinding（复用 dolphin-core 的提取器 + 补 host 维度）
@@ -228,6 +470,12 @@ export async function runPatrol(alias, targetDir, options = {}) {
         host: alias,
         targetDir,
         rulesConfig,
+        deploy: {
+          strategy: deploy.strategy,
+          uploadBytes: deploy.uploadBytes,
+          remoteDownloadBytes: deploy.remoteDownloadBytes,
+          notes: deploy.notes,
+        },
         total,
         truncated,
         summary: summarize(shown),
@@ -249,6 +497,21 @@ export async function runPatrol(alias, targetDir, options = {}) {
       findings: shown,
     }
   } finally {
+    // 临时目录自动清理（venv / 便携包 / 规则文件目录）：必须在引擎释放前执行。
+    // 尽力而为：单条清理失败不影响主流程结果，只打警告。
+    const dirs = deploy?.cleanupDirs ?? []
+    if (dirs.length) {
+      try {
+        const c = await engine.exec(alias, `rm -rf ${dirs.map(shellQuote).join(' ')}`, 15000, 1)
+        if (c.exitCode === 0) {
+          console.log(`[Dolphin] 已自动清理远端临时目录：${dirs.join(', ')}`)
+        } else {
+          console.log(`[Dolphin] ⚠ 临时目录清理未确认完成（exit=${c.exitCode}）：${dirs.join(', ')}`)
+        }
+      } catch (e) {
+        console.log(`[Dolphin] ⚠ 临时目录清理失败（不影响扫描结果）：${msg(e)}`)
+      }
+    }
     // 自建引擎用完即释放，避免 ssh2 连接 + keepalive 定时器挂住事件循环。
     if (!injectedEngine) engine.dispose()
   }
@@ -406,12 +669,49 @@ export async function test() {
   rmSync(emptyDir, { recursive: true, force: true })
   rmSync(dryReports, { recursive: true, force: true })
 
-  // 6. fallback runner 源码语法自检（不真实连远端）
-  console.log('\n【6】fallback runner 源码')
-  const src = buildRemoteRunnerSource('/var/www/app', 'p/security-audit')
-  check('runner 含 scanDirectory 导入', src.includes("import { scanDirectory } from './scanner.mjs'"))
-  check('runner 含 JSON 输出', src.includes('process.stdout.write(JSON.stringify'))
-  check('targetDir 被写死进脚本', src.includes('"/var/www/app"'))
+  // 6. 隔离部署层纯函数自检（无网络依赖）
+  console.log('\n【6】隔离部署层（pipx → venv → 便携包）')
+  check('导出 assertNoPrivilegeEscalation', typeof assertNoPrivilegeEscalation === 'function')
+  check('导出 assessDeploymentPlan', typeof assessDeploymentPlan === 'function')
+  check('导出 prepareWheelBundle', typeof prepareWheelBundle === 'function')
+  check('导出 buildPortableInstallCommands', typeof buildPortableInstallCommands === 'function')
+
+  // 安全红线：sudo 与 --break-system-packages 必须被拦截
+  let blocked = false
+  try { assertNoPrivilegeEscalation('sudo pip install semgrep') } catch { blocked = true }
+  check('拦截 sudo 安装', blocked)
+  blocked = false
+  try { assertNoPrivilegeEscalation('pip install --break-system-packages semgrep') } catch { blocked = true }
+  check('拦截 --break-system-packages', blocked)
+  check('放行普通命令', assertNoPrivilegeEscalation('pipx install semgrep') === true)
+  blocked = false
+  try { assertNoPrivilegeEscalation('echo ok | sudo pip install x') } catch { blocked = true }
+  check('拦截管道后置 sudo', blocked)
+
+  // buildRemoteScanCommand 支持自定义 semgrep 入口（隔离部署产物）
+  const c5 = buildRemoteScanCommand('/var/www/app', null, '/tmp/dolphin-venv-1/bin/semgrep')
+  check('venv 入口被拼进扫描命令', c5.startsWith('/tmp/dolphin-venv-1/bin/semgrep scan'), c5)
+  const c6 = buildRemoteScanCommand('/var/www/app', null, 'PYTHONPATH=/tmp/pkg python3 -m semgrep')
+  check('便携包 PYTHONPATH 入口被拼进扫描命令', c6.startsWith('PYTHONPATH=/tmp/pkg python3 -m semgrep scan'), c6)
+
+  // 便携包离线安装命令：必须 --no-index（不碰网络）、--target（不碰系统）
+  const pc = buildPortableInstallCommands('/tmp/wheels', '/tmp/pkg')
+  check('离线安装含 --no-index --target', pc.viaPip.includes('--no-index') && pc.viaPip.includes('--target'), pc.viaPip.slice(0, 90))
+  check('离线安装不含 sudo / --break-system-packages', !pc.viaPip.includes('sudo') && !pc.viaPip.includes('--break-system-packages'))
+
+  // 风险/收益评估
+  const a1 = assessDeploymentPlan('pipx', { remoteDownloadBytes: 30 * 1024 * 1024 })
+  check('pipx 评估为低风险 0 上传', a1.riskLevel === '低' && a1.uploadBytes === 0, a1.rationale.slice(0, 60))
+  const a2 = assessDeploymentPlan('portable', { uploadBytes: 40 * 1024 * 1024 })
+  check('portable 评估标注上传流量', a2.riskLevel.includes('上传'), a2.rationale.slice(0, 60))
+
+  // 便携包缓存命中路径（放一个假 .whl 到临时缓存目录，不触发网络）
+  const fakeCache = join(tmpdir(), `dolphin-wheel-cache-test-${Date.now()}`)
+  mkdirSync(fakeCache, { recursive: true })
+  writeFileSync(join(fakeCache, 'semgrep-0.0.0-py3-none-any.whl'), 'fake', 'utf8')
+  const wb = prepareWheelBundle(fakeCache, '3.11')
+  check('便携包缓存命中（不联网）', wb.fromCache === true && wb.files.length === 1 && wb.totalBytes === 4)
+  rmSync(fakeCache, { recursive: true, force: true })
 
   const pass = results.filter((r) => r.pass).length
   const fail = results.length - pass
@@ -435,6 +735,9 @@ Dolphin 主动巡检控制器（dolphin-patrol.js）
   node dolphin-patrol.js --patrol <alias> <远程目录>  远程巡逻（需先建主机）
 
 远程巡逻前置：先在主机库登记目标（见 dolphin-ssh-core 的 HostStore.create）。
+远端无 semgrep 时自动按隔离策略部署（pipx → 临时 venv → 便携包上传），
+全程不使用 sudo / --break-system-packages，临时目录扫描后自动清理。
+便携包缓存：DOLPHIN_SEMGREP_CACHE（默认 ~/.dolphin/semgrep-wheel-cache）。
 输出：D:\\Dolphin\\reports\\patrol-<host>-<时间戳>.json
 `)
     return

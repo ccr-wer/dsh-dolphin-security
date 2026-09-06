@@ -1,5 +1,0 @@
-# Bilingual-pair consistency record (docs/i18n.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with git hash-object.
-2026-08-27-checkout-dir-rename-dsh-web.md: cab7f71af6f214a266dffb843a4d984123a179fe
-2026-08-27-checkout-dir-rename-dsh-web.zh.md: 13c7b12866874b1aa7c17fde6bc6b2e99b25d5c0

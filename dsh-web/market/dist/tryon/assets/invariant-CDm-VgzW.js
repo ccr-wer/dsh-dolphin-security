@@ -1,1 +1,0 @@
-const e="@deepseek-ai/dsh-session-projection-cache",i="session-projection-cache-invariant",o=["invariants"],n=()=>{},t=s=>Promise.resolve(s.invariants.register(e,n));export{t as apply,o as inject,i as name};

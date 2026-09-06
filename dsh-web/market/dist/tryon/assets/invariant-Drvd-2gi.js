@@ -1,1 +1,0 @@
-const t="@deepseek-ai/dsh-compaction-tool-result-pruner",o="compaction-tool-result-pruner-invariant",s=["invariants"],e=()=>{},r=n=>Promise.resolve(n.invariants.register(t,e));export{r as apply,s as inject,o as name};

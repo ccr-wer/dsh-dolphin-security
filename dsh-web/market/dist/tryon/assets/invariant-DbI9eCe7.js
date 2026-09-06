@@ -1,1 +1,0 @@
-const n="@deepseek-ai/dsh-client-schema-form",t="client-schema-form-invariant",i=["invariants"],s=()=>{},a=e=>Promise.resolve(e.invariants.register(n,s));export{a as apply,i as inject,t as name};

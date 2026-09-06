@@ -24,10 +24,32 @@ Current release: **v0.1.1** (stable, includes the DSH plugin adapter entry)
 
 | Item | Requirement |
 |---|---|
-| OS | Windows 10 / 11 x64 |
+| OS | **Cross-platform**: Windows 10 / 11, Linux, macOS, WSL2 (see "Cross-Platform Support" below) |
 | Node.js | **>= 20** (20 LTS or 22 LTS recommended) |
 | Package manager | npm (bundled with Node.js) |
-| Static analysis engine | **semgrep** (see installation below) |
+| Static analysis engine | **semgrep** (see installation below; the plugin can auto-provision it remotely in an isolated way when missing) |
+
+---
+
+## Cross-Platform Support
+
+Dolphin runs across operating systems: **Windows / Linux / WSL / macOS** (Node.js >= 20), with zero OS-specific dependencies —
+
+- **No hardcoded paths**: every data path is derived at runtime (`os.homedir()`, `os.tmpdir()`, the module's own location); Windows and POSIX paths both work.
+- **Pure-JS SSH layer**: built on ssh2 (pure JavaScript, no platform-specific binaries). Controller and target can be any OS combination — a Linux controller scanning a Windows target, or vice versa; both directions are verified end-to-end.
+- **POSIX-strict remote commands**: every command dispatched to the remote passes strict POSIX syntax validation (`dash -n`) plus single-quote escaping against injection.
+- **Verified matrix**: full patrol loops (healthcheck → scan → report archive) verified for Windows controller ↔ Linux/WSL target and Linux (WSL) controller ↔ Windows target.
+
+### Data & Paths (environment variables)
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `DOLPHIN_HOME` | Root of the host store and other data | Falls back to `DSH_HOME`, then `~/.dolphin` |
+| `DSH_HOME` | DSH ecosystem data root (read by Dolphin as fallback) | `~/.dsh` |
+| `DOLPHIN_REPORTS_DIR` | Patrol report output directory | `<plugin dir>/reports/` |
+| `DOLPHIN_SEMGREP_CACHE` | Local cache of Linux wheels for remote provisioning | `~/.dolphin/semgrep-wheel-cache` |
+
+The host store lives at `<data root>/dolphin-ssh-hosts.json` (atomic writes, 0600 permission semantics); patrol reports are sensitive data and excluded from the repository via `.gitignore`.
 
 ---
 
@@ -166,6 +188,31 @@ Dolphin is built on three layers — the eyes, the hands, and the brain:
 | **Scanning layer (eyes)** | `dolphin-core.js` | Semgrep wrapper; defines the unified `SecurityFinding` model |
 | **Execution layer (hands)** | `dolphin-ssh-core.js` | Standalone SSH engine adapted from the Apache-2.0 licensed dsh-ssh; `exec` / `cluster` / `upload` / `download` / `test` |
 | **Controller (brain)** | `dolphin-patrol.js` | Dispatches scans over SSH, collects JSON, structures and archives results |
+
+---
+
+## 🔐 Remote Provisioning Hardening (Safe Deployment)
+
+> Remote tool provisioning has been fully reworked: **the plugin provisions remote semgrep exclusively via isolation techniques (pipx / venv / portable wheel bundle) and never pollutes the production system.**
+> `sudo`, `pip install --break-system-packages`, and any write to system site-packages are **strictly forbidden** —
+> every deployment command passes a hard gate (`assertNoPrivilegeEscalation`) before leaving the local machine.
+> Change note: the legacy "upload a node script" fallback has been removed and replaced by the three-tier isolated provisioning chain below.
+
+When semgrep is missing from the target host's PATH, the patrol provisions it automatically in this priority
+order (each step prints a pre-flight verdict: strategy, bytes to upload, estimated remote download, risk level):
+
+| Priority | Strategy | Isolation | Cost |
+|---|---|---|---|
+| 1 | **pipx** | `pipx install semgrep` into the user-level sandbox (`~/.local/share/pipx`), persistent & reusable | ≈30MB pulled from PyPI on the remote |
+| 2 | **Temp venv** | `pip install semgrep` inside `/tmp/dolphin-venv-<ts>`; fully isolated | Same download; ≈30s venv build |
+| 3 | **Portable bundle (final fallback)** | Locally cached Linux wheels (≈40–60MB) uploaded via SFTP, then offline-installed with `pip --no-index --target` into an isolated `/tmp` dir (zipfile extraction + `PYTHONPATH` if pip is absent) | SFTP upload traffic (byte count shown in pre-flight) |
+
+- **Auto cleanup**: temp venv, portable bundle and uploaded rules files (`/tmp/dolphin-*`) are `rm -rf`ed right after
+  the scan. The **local** wheel cache is kept for reuse (override with `DOLPHIN_SEMGREP_CACHE`, default
+  `~/.dolphin/semgrep-wheel-cache`).
+- **Honest degradation**: if the remote has neither pipx nor python3, the patrol fails explicitly with a reason —
+  it will never silently fall back to privileged operations.
+- The cached semgrep version is pinned at first download; clear the cache directory to upgrade.
 
 ---
 
