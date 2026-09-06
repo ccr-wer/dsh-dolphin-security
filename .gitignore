@@ -22,6 +22,9 @@ package-lock.json
 dsh-web/
 dsh-plugin-hos-forge-v2/
 
+# 内部开发日志（仅供本地留存，绝不入库/不上传 npm）
+*_DEVLOG.md
+
 # macOS
 .DS_Store
 
