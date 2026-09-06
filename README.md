@@ -3,7 +3,7 @@
 > 将渗透测试方法论（信息收集 → 漏洞探测 → 利用验证 → 报告）转化为**主动防御巡检流程**，填补 DSH 生态中"主动防御巡检"的空白。
 > 不再被动等告警，而是像海豚巡游一样，定期、主动地对目标主机做安全扫描与评估。
 
-当前版本：**v0.1.1**（正式发布，DSH 生态插件适配层已包含）
+当前版本：**v0.2.0**（新增：跨平台支持 Windows/Linux/macOS/WSL、远端 semgrep 隔离部署链 pipx/venv/便携包）
 
 ---
 
@@ -230,6 +230,7 @@ Dolphin 采用「眼睛 + 手脚 + 大脑」三层架构：
 
 ## 相关文档
 
+- [CHANGELOG.md](./CHANGELOG.md) —— **更新日志**
 - [README_EN.md](./README_EN.md) —— **English README**
 - [WINDOWS_PREVIEW_GUIDE.md](./WINDOWS_PREVIEW_GUIDE.md) —— **Windows 预览版交付说明（新手请先读这份）**
 - [DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md) —— 开发日志与踩坑记录

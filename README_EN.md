@@ -3,7 +3,7 @@
 > Transforming the penetration-testing methodology (Reconnaissance → Vulnerability Detection → Exploitation Validation → Reporting) into a **proactive defense patrol workflow**.
 > Instead of waiting passively for alerts, Dolphin patrols your hosts on schedule — the way a dolphin swims its route.
 
-Current release: **v0.1.1** (stable, includes the DSH plugin adapter entry)
+Current release: **v0.2.0** (new: cross-platform support for Windows/Linux/macOS/WSL, isolated remote semgrep provisioning via pipx/venv/portable bundle)
 
 [简体中文](./README.md) | [English](./README_EN.md)
 
@@ -254,6 +254,7 @@ Dolphin itself is released under the **MIT** license.
 
 ## Documentation
 
+- [CHANGELOG.md](./CHANGELOG.md) — **Changelog**
 - [README.md](./README.md) — 简体中文
 - [WINDOWS_PREVIEW_GUIDE.md](./WINDOWS_PREVIEW_GUIDE.md) — Windows preview setup guide
 - [DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md) — Development log and pitfalls
