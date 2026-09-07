@@ -34,8 +34,10 @@ const REPORTS_DIR = process.env.DOLPHIN_REPORTS_DIR ?? join(__dirname, 'reports'
 // 默认规则集（空格分隔多包，--config 逐包展开）：security-audit 覆盖 CWE-78/489，
 // owasp-top-ten 补齐其空白（CWE-79/89/22/95，见 docs/RULESET_RESEARCH.md 实测），
 // rules/dolphin-core.yml 为自建的硬编码凭据规则（官方 registry 的
-// hardcoded-password-default 已消失，CWE-798 全线漏报，故随仓库分发）。
-const DEFAULT_RULES = 'p/security-audit p/owasp-top-ten rules/dolphin-core.yml'
+// hardcoded-password-default 已消失，CWE-798 全线漏报，故随 npm 包分发）。
+// 自建规则用 __dirname 绝对路径：消费者在任意 cwd 运行时都能解析到包内文件，
+// 远程巡逻时由规则上传逻辑（existsSync 检测）自动改写为远端路径。
+const DEFAULT_RULES = `p/security-audit p/owasp-top-ten ${join(__dirname, 'rules', 'dolphin-core.yml')}`
 const DEFAULT_SCAN_TIMEOUT = 120000
 const DEFAULT_MAX_FINDINGS = 200
 

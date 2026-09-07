@@ -3,6 +3,17 @@
 本项目的所有重要变更都记录在此文件中。
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.2.1] — 2026-09-06
+
+### 新增 / Added
+- **默认规则集升级**：`p/security-audit` → `p/security-audit` + `p/owasp-top-ten` + 自建规则，补齐 CWE-79/89/22/95 官方空白（实测靶场命中 4 → 21，零误报）。
+- **自建规则 `dolphin.hardcoded-credentials`（CWE-798）**：官方 registry 的 `hardcoded-password-default` 已消失，社区规则集全线漏报硬编码凭据；本规则修复 JSON 冒号引号风格漏报，随 npm 包分发。
+- **多规则包支持**：`rulesConfig` 支持空格分隔多包/文件（逐包展开 `--config`）；远程巡逻时本地规则文件自动上传远端并改写路径、扫描后自动清理。
+- `rulesConfig` 含空格的注入自检用例更新（多 token 语义下恶意串被中性化为 `--config` 参数值）。
+
+### 修复 / Fixed
+- 自建规则路径改为模块目录绝对路径解析，消费者在任意工作目录运行均可加载。
+
 ## [0.2.0] — 2026-09-06
 
 ### 新增 / Added

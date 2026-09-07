@@ -3,7 +3,7 @@
 > Transforming the penetration-testing methodology (Reconnaissance → Vulnerability Detection → Exploitation Validation → Reporting) into a **proactive defense patrol workflow**.
 > Instead of waiting passively for alerts, Dolphin patrols your hosts on schedule — the way a dolphin swims its route.
 
-Current release: **v0.2.0** (new: cross-platform support for Windows/Linux/macOS/WSL, isolated remote semgrep provisioning via pipx/venv/portable bundle)
+Current release: **v0.2.1** (new: cross-platform support for Windows/Linux/macOS/WSL, isolated remote semgrep provisioning via pipx/venv/portable bundle)
 
 [简体中文](./README.md) | [English](./README_EN.md)
 

@@ -1,6 +1,6 @@
 {
   "name": "dsh-dolphin-security",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "main": "./index.js",
   "private": false,
@@ -29,6 +29,7 @@
     "dolphin-patrol.js",
     "dolphin-ssh-core.js",
     "dsh-code-scan/lib/scanner.js",
+    "rules/dolphin-core.yml",
     "cordis.patch.yml",
     "README.md",
     "README_EN.md",
