@@ -3,6 +3,12 @@
 本项目的所有重要变更都记录在此文件中。
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.2.2] — 2026-09-07
+
+### 修复 / Fixed
+- **LICENSE 许可证声明修复**：清除一次未正确解决的 merge 冲突残留（`<<<<<<< HEAD` / `=======` / `>>>>>>>` 标记与误入的 MPL-2.0 文本），恢复为干净的纯 MIT 文本（44 行）+ 第三方声明，消除 SPDX 扫描器的 NOASSERTION 误判。
+- README / README_EN 版本号同步至 v0.2.2。
+
 ## [0.2.1] — 2026-09-06
 
 ### 新增 / Added
