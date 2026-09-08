@@ -1,5 +1,9 @@
 # Dolphin — Proactive Security Patrol Plugin
 
+[![Listed on dsh-plugin.org](https://dsh-plugin.org/badges/listed.svg)](https://dsh-plugin.org/plugins/ccr-wer/dsh-dolphin-security)
+
+**This project is listed on the official dsh-plugin.org marketplace (Listed on dsh-plugin.org).**
+
 > Transforming the penetration-testing methodology (Reconnaissance → Vulnerability Detection → Exploitation Validation → Reporting) into a **proactive defense patrol workflow**.
 > Instead of waiting passively for alerts, Dolphin patrols your hosts on schedule — the way a dolphin swims its route.
 

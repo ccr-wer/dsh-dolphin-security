@@ -1,5 +1,9 @@
 # Dolphin（小海豚）—— 主动巡检型安全防御插件
 
+[![Listed on dsh-plugin.org](https://dsh-plugin.org/badges/listed.svg)](https://dsh-plugin.org/plugins/ccr-wer/dsh-dolphin-security)
+
+**本项目已收录于 dsh-plugin.org 官方插件市场（Listed on dsh-plugin.org）**
+
 > 将渗透测试方法论（信息收集 → 漏洞探测 → 利用验证 → 报告）转化为**主动防御巡检流程**，填补 DSH 生态中"主动防御巡检"的空白。
 > 不再被动等告警，而是像海豚巡游一样，定期、主动地对目标主机做安全扫描与评估。
 
