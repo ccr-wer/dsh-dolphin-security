@@ -3,6 +3,12 @@
 本项目的所有重要变更都记录在此文件中。
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.2.3] — 2026-09-09
+
+### 新增 / Added
+- **本地 `dolphin_scan` 规则集与远程巡逻对齐**：默认规则由单包 `p/security-audit` 升级为三包 `p/security-audit` + `p/owasp-top-ten` + 自建规则（绝对路径解析），本地扫描与 `dolphin_patrol` 输出一致（实测靶场命中 4 → 21，14 ERROR / 7 WARNING）。
+- `package.json` 补充 `exports` 字段映射（`.` → `./index.js`），ESM 插件入口暴露完整。
+
 ## [0.2.2] — 2026-09-07
 
 ### 修复 / Fixed

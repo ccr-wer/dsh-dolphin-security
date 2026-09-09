@@ -7,7 +7,7 @@
 > Transforming the penetration-testing methodology (Reconnaissance → Vulnerability Detection → Exploitation Validation → Reporting) into a **proactive defense patrol workflow**.
 > Instead of waiting passively for alerts, Dolphin patrols your hosts on schedule — the way a dolphin swims its route.
 
-Current release: **v0.2.2** (fix: LICENSE declaration — removed merge-conflict marker residue, restored clean MIT text to clear the SPDX NOASSERTION misclassification)
+Current release: **v0.2.3** (local `dolphin_scan` ruleset upgraded to the same 3-pack as remote patrol: `p/security-audit` + `p/owasp-top-ten` + custom CWE-798; local detection rate now matches patrol)
 
 [简体中文](./README.md) | [English](./README_EN.md)
 
