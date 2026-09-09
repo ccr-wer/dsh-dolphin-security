@@ -107,6 +107,46 @@ async function detectRemoteSemgrep(engine, alias) {
 }
 
 // ============================================================================
+// 3.1 远端临时目录探测 —— 统一 exec 与 SFTP 两条通道路径
+// ----------------------------------------------------------------------------
+// 背景（Windows 主机坑）：若远端默认 shell 是 Git Bash/MSYS，exec 通道的
+// /tmp 映射到 C:\Users\<u>\AppData\Local\Temp（$TEMP），而 SFTP 走
+// sftp-server.exe，其 /tmp 映射到 C:\tmp（/ 根 = 驱动器根 C:\）。两通道错位
+// 会导致规则文件「上传到 C:\tmp、扫描却去 TEMP 找」。实测（远端 Windows:22，
+// Git Bash 默认 shell）：
+//   exec(Git Bash) cygpath -w /tmp        → C:\Users\<user>\AppData\Local\Temp
+//   sftp put /tmp/xx.yml                   → C:\tmp\xx.yml
+//   sftp put /Users/<user>/.../Temp/xx.yml → C:\Users\<user>\...\Temp\xx.yml（正确）
+//   sftp put C:/Users/...                  → 失败（拼成 /C:/Users/<user>/C:/...）
+//   sftp put /c/Users/...                  → 失败（MSYS 形式 sftp-server 不认）
+// 因此 Windows 上：exec 用 /tmp（其映射即 TEMP），SFTP 用「去盘符 + 正斜杠」的
+// Windows 原生路径（/Users/.../Temp）。Linux/macOS 上两者都用 /tmp，行为不变。
+// ============================================================================
+async function detectRemoteTempBase(engine, alias) {
+  // cygpath 是 MSYS/Git Bash 的标志；无 cygpath 即 POSIX 环境
+  const cyg = await engine.exec(
+    alias,
+    'command -v cygpath >/dev/null 2>&1 && printf MSYS || printf POSIX',
+    PROBE_TIMEOUT,
+    1,
+  )
+  const isMsys = cyg.success && cyg.stdout.includes('MSYS')
+  if (!isMsys) return { execBase: '/tmp', sftpBase: '/tmp', platform: 'posix' }
+  // 拿 Windows 原生临时目录，转成 sftp-server 能解析的形式（去盘符 + 正斜杠）
+  let sftpBase = '/tmp'
+  try {
+    const w = await engine.exec(alias, 'cygpath -w /tmp', PROBE_TIMEOUT, 1)
+    const winPath = (w.stdout || '').trim()
+    if (winPath && /^[A-Za-z]:/.test(winPath)) {
+      sftpBase = winPath.replace(/^[A-Za-z]:/, '').replace(/\\/g, '/')
+    }
+  } catch {
+    // 探测失败退回 /tmp（行为与旧版一致，至少不崩）
+  }
+  return { execBase: '/tmp', sftpBase, platform: 'windows' }
+}
+
+// ============================================================================
 // 3.5 远端 semgrep 隔离部署层（pipx → venv → 便携包，绝不提权）
 // ----------------------------------------------------------------------------
 // 安全红线（写入 README「安全部署」章节）：
@@ -405,21 +445,27 @@ export async function runPatrol(alias, targetDir, options = {}) {
       const tokens = rulesConfig.split(/\s+/).filter(Boolean)
       const localTokens = tokens.filter((t) => existsSync(resolve(t)))
       if (localTokens.length) {
-        const rulesDir = `/tmp/dolphin-rules-${Date.now()}`
+        // 规则文件部署：先探测远端临时目录，统一 exec 与 SFTP 路径语义。
+        // exec 侧（mkdir/扫描引用）与 SFTP 侧（upload）在 Windows 主机上映射
+        // 不同，必须各用各的路径、指向同一物理目录（详见 detectRemoteTempBase）。
+        const base = await detectRemoteTempBase(engine, alias)
+        const dirName = `dolphin-rules-${Date.now()}`
+        const execRulesDir = `${base.execBase}/${dirName}`
+        const sftpRulesDir = `${base.sftpBase}/${dirName}`
         try {
-          await engine.exec(alias, `mkdir -p ${shellQuote(rulesDir)}`, PROBE_TIMEOUT, 1)
+          await engine.exec(alias, `mkdir -p ${shellQuote(execRulesDir)}`, PROBE_TIMEOUT, 1)
           const mapped = []
           for (const t of tokens) {
             if (existsSync(resolve(t))) {
-              const dest = `${rulesDir}/${resolve(t).split(/[\\/]/).pop()}`
-              await engine.upload(alias, resolve(t), dest, false)
-              mapped.push(dest)
+              const name = resolve(t).split(/[\\/]/).pop()
+              await engine.upload(alias, resolve(t), `${sftpRulesDir}/${name}`, false)
+              mapped.push(`${execRulesDir}/${name}`)
             } else {
               mapped.push(t)
             }
           }
           remoteRules = mapped.join(' ')
-          rulesCleanup.push(rulesDir)
+          rulesCleanup.push(execRulesDir)
         } catch (e) {
           return { ok: false, stage: 'preflight', host: alias, error: `规则文件上传失败：${msg(e)}` }
         }

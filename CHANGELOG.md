@@ -3,6 +3,11 @@
 本项目的所有重要变更都记录在此文件中。
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.2.4] — 2026-09-09
+
+### 修复 / Fixed
+- **Windows Git Bash 远端路径映射修复**：远端默认 shell 为 Git Bash/MSYS 时，exec 通道 `/tmp` 映射到 `%TEMP%`，而 SFTP 通道（`sftp-server.exe`）把 `/tmp` 映射到驱动器根的 `C:\tmp`，两通道错位导致远程规则文件「上传到 A 处、扫描却去 B 处找」（自建 CWE-798 规则静默失效）。新增 `detectRemoteTempBase()`：探测到 MSYS 环境后，exec 仍用 `/tmp`、SFTP 改用「去盘符 + 正斜杠」的 Windows 原生路径（`/Users/<user>/.../Temp`），两通道指向同一物理目录；Linux/macOS 行为不变。实测 Windows 主机远程巡逻恢复三包规则全量命中（靶场 21 处：14 ERROR / 7 WARNING）。
+
 ## [0.2.3] — 2026-09-09
 
 ### 新增 / Added
