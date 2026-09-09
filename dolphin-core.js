@@ -23,7 +23,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 // ---- 常量 ----------------------------------------------------------------
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPORTS_DIR = join(__dirname, 'reports')
-const DEFAULT_RULES = 'p/security-audit'
+const DEFAULT_RULES = `p/security-audit p/owasp-top-ten ${join(__dirname, 'rules', 'dolphin-core.yml')}`
 const DEFAULT_TIMEOUT = 120000
 const DEFAULT_MAX_FINDINGS = 200
 
