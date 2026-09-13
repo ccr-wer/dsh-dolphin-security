@@ -7,7 +7,7 @@
 > Transforming the penetration-testing methodology (Reconnaissance → Vulnerability Detection → Exploitation Validation → Reporting) into a **proactive defense patrol workflow**.
 > Instead of waiting passively for alerts, Dolphin patrols your hosts on schedule — the way a dolphin swims its route.
 
-Current release: **v0.2.4** (fixes the `/tmp` path mismatch between the SFTP and exec channels on Windows Git Bash hosts — new `detectRemoteTempBase` unifies remote temp-directory mapping so uploaded rule files always land where the scanner looks)
+Current release: **v0.2.5** (fixes the `@deepseek-ai/dsh-tools` version range in `peerDependencies` — prerelease versions only match within the same version tuple, so the previous range would fail assembly under strict peer validation; the new range aligns with and covers the DSH 0.1.5 series)
 
 [简体中文](./README.md) | [English](./README_EN.md)
 

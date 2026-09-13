@@ -3,6 +3,15 @@
 本项目的所有重要变更都记录在此文件中。
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.2.5] — 2026-09-13
+
+### 修复 / Fixed
+- **`peerDependencies` 版本范围修正**：`@deepseek-ai/dsh-tools` 由 `^0.1.1-rc.2` 调整为 `^0.1.5-rc.1`（`peerDependencies` 与 `devDependencies` 两处）。按 semver 规范，prerelease 版本仅在相同 `[major, minor, patch]` 元组内匹配，原范围连宿主 `0.1.2-rc.1` 都不满足（实测 `satisfies('0.1.2-rc.1', '^0.1.1-rc.2') === false`）；在启用 `strict-peer-dependencies` 或宿主改为严格校验时会导致装配失败。新范围覆盖 `0.1.5-rc.1` / `0.1.5-rc.2` / `0.1.5` 正式版。`@deepseek-ai/cordis` 保持 `^4.0.1`（0.1.2 与 0.1.5 宿主均依赖 `^4.0.2`，本就满足）。
+
+### 说明 / Notes
+- 已对 DSH `0.1.5-rc.1` 做完整兼容性核对（对 `dsh` / `dsh-tools` / `dsh-agent` / `dsh-session` 四包做 0.1.2-rc.1 ↔ 0.1.5-rc.1 逐文件 diff）：`exec.agent?.session?.header?.cwd` 调用链在 0.1.5 中完整保留；`ctx.tools.register(defineTool(...))` 与 `execute(args, exec)` 签名未变；`dsh.bundle.patch` 挂载机制未变。Inbox 模块（`@deepseek-ai/dsh-agent` 的 `lib/types/inbox.*`，0.1.2 中即标注 `@internal — not a plugin extension point`）在 0.1.5 中被内部重构，本插件全库无引用，影响为零。
+- 回归验证：本地扫描与远程 SSH 巡逻两条链路均命中靶场 21 处（14 ERROR / 7 WARNING），三包规则集（`p/security-audit` + `p/owasp-top-ten` + 自建 CWE-798）全部生效。
+
 ## [0.2.4] — 2026-09-09
 
 ### 修复 / Fixed
