@@ -22,6 +22,10 @@ package-lock.json
 dsh-web/
 dsh-plugin-hos-forge-v2/
 
+# 上架用 Skill 封装包：已独立成库（github.com/ccr-wer/dolphin-security-skill）
+# 内含嵌套 git 仓库，父仓库若 add 会退化成 gitlink，故整体排除
+skill-package/
+
 # 内部开发日志（仅供本地留存，绝不入库/不上传 npm）
 *_DEVLOG.md
 
