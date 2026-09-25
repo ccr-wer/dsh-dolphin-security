@@ -3,6 +3,26 @@
 本项目的所有重要变更都记录在此文件中。
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.2.6] — 2026-09-25
+
+### 新增 / Added
+- **内置规则集：1 条 → 162 条**。以 GitLab SAST Rules（上游 commit `53bf5cf6df3c51b6c02110f5a638b5e6213666cd`）为源，逐文件判定许可证后收录 java 55 / python 68 / javascript 11 / go 27 共 **161 条**，另加自研 `dolphin.hardcoded-credentials`（CWE-798 硬编码凭据）**1 条**，合计 162 条 / 162 个唯一 ID。许可分布：**MIT 136**（GitLab 侧 135 + 自研 1）、**Apache-2.0 26**（go/ 下源自 securego/gosec），全部在白名单内，逐条注入 `metadata.license`。规则集为随包分发的单文件 `rules/dolphin-core.yml`，不再依赖远端 registry 拉取 `p/*` 规则包（规避 Semgrep SRL v1.0 的禁转售条款）。逐条来源/许可/注入结果见 `rules/dolphin-core.manifest.json`。
+- **规则 ID 索引与 `check_id` 归一化**（`buildRuleIdIndex()` / `normalizeCheckId()`）：semgrep 对「文件型 `--config`」会在 `check_id` 前拼接配置路径的点号化前缀（配置不在子进程 cwd 子树内时退化为完整绝对路径），导致同一规则在不同机器/目录下 ID 漂移，且把本机安装路径泄漏进报告。现改为以规则文件中的真实 ID 集合做**最长后缀精确匹配**，对 cwd、盘符、远端路径一律免疫。
+
+### 修复 / Fixed
+- **便携 wheel 包平台硬闸门**：Windows 宿主上执行 `pip download --platform=manylinux*` 只改 wheel 标签、**不改环境标记求值**，`sys_platform == "win32"` 仍为真；新版 semgrep 的 `pywin32` 依赖没有 manylinux wheel，pip 于是静默退避到 semgrep 1.136.0 + protobuf 4.25.9（**退出码仍为 0**，失败无声），装到远端 Python 3.14 上必崩（`TypeError: Metaclasses with custom tp_new are not supported`）。现改为：Windows 宿主且缓存未命中时**明确拒绝备包并给出处置指引**（在 Linux 侧下载或预置 `DOLPHIN_SEMGREP_CACHE`），不再生成坏包。
+- **部署失败信息被 pip warning 顶掉**：三级部署链（pipx → venv → 便携包）报错时改为优先取「安装步」的 stderr；原逻辑取最后一步输出，npm/pip 的警告会把真实错误冲掉。新增 `composePortableError()` 统一收口。
+- **venv 失败路径未登记清理**：`python3 -m venv` 在缺 `python3.14-venv` 的发行版（如 Ubuntu 26.04）上会失败并报 `ensurepip is not available`，但残留目录原先未进 `cleanupDirs`，导致远端 `/tmp/dolphin-venv-*` 空壳累积。现无论成败都登记，扫描结束后统一回收。
+
+### 变更 / Changed
+- **报告落盘逻辑去重**：`dolphin-core.js` 抽出 `writeReports()`（`runScan()` 与 `--mock` 自测路径共用），`dolphin-patrol.js` 抽出 `writeJsonReport()`（`runPatrol()` 与 `runLocalScan()` 共用），消除四处重复的「建目录 → 序列化 → 写入」代码。
+- **开源合规中性化**：`.gitignore` 补充 `staging/`（本地规则集构建/审计脚本，内含本机绝对路径）与 `npm-dist/`（0.2.5 解压快照）；README、示例与源码注释中的本机绝对路径全部改为 `<插件目录>`、`C:\Users\<user>` 等中性写法。
+
+### 说明 / Notes
+- 自检 **42 项全部通过**（改动前基线同为 42/0，本次重构只去重、不改行为）。端到端回归：Windows 与 WSL 两侧对同一靶场检出**逐条一致**（13 处 = ERROR 7 + WARNING 6），`checkId` 全部为纯规则 ID、无路径前缀，两次巡逻 findings 完全可复现。
+- 远程巡逻端到端约 32 秒（含 SFTP 上传约 55.7 MB 便携包）。
+- 本轮不涉及 Skill 侧封装包（`skill-package/`，已独立成库 `github.com/ccr-wer/dolphin-security-skill`）。
+
 ## [0.2.5] — 2026-09-13
 
 ### 修复 / Fixed

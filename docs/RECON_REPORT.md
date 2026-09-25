@@ -1,6 +1,6 @@
 # Dolphin 源码融合侦察报告
 
-> 侦察对象：`D:\Dolphin\dsh-code-scan`（v0.1.0）
+> 侦察对象：`dsh-code-scan/`（v0.1.0，随本仓库附带的 vendored 副本）
 > 侦察日期：2026-08-29
 > 涉及文件：`index.js`（36 行）、`lib/scanner.js`（160 行）、`cordis.patch.yml`（5 行）、`package.json`
 
@@ -212,7 +212,7 @@ export async function scanDirectory(targetDir, options = {})
 | 动作 | 结果 |
 |---|---|
 | `import('.../lib/scanner.js')` | ✅ 成功，导出符号 `['scanDirectory']` |
-| `scanDirectory('D:/Dolphin/dsh-code-scan')` | ✅ 返回 `{ ok:false, message:"未检测到 semgrep 命令..." }`（semgrep 未装，走 missing 分支，符合预期） |
+| `scanDirectory('<工作区>/dsh-code-scan')` | ✅ 返回 `{ ok:false, message:"未检测到 semgrep 命令..." }`（semgrep 未装，走 missing 分支，符合预期） |
 | `import('.../index.js')` | ❌ `ERR_MODULE_NOT_FOUND: @deepseek-ai/dsh-tools` |
 
 ---

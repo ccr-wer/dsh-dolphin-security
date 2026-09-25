@@ -101,7 +101,7 @@ pip show semgrep
 打开终端，**进入项目目录**：
 
 ```bash
-cd D:\Dolphin
+cd <项目目录>
 ```
 
 执行安装：
@@ -122,8 +122,8 @@ node dolphin-patrol.js
 
 会跑自检断言。这一步**不需要**网络，输出取决于本机是否已装 semgrep：
 
-- **已装 semgrep**：输出「25 通过 / 0 失败」
-- **尚未装 semgrep**：输出「22 通过 / 0 失败」，并提示跳过 3 项依赖 semgrep 的检查
+- **已装 semgrep**：全部断言通过（末尾打印「N 通过 / 0 失败」）
+- **尚未装 semgrep**：会跳过若干依赖 semgrep 的检查（跳过不算失败），其余断言仍应全部通过
 
 两种结果都表示模块本身正常（跳过不算失败）。若出现「N 失败」，请按报错信息排查。
 
@@ -141,10 +141,10 @@ node dolphin-patrol.js --local <目录>
 node dolphin-patrol.js --local D:\MyProject\src
 ```
 
-也可以拿项目自带的测试靶场练手（该目录已内置若干故意留下的漏洞样例）：
+也可以拿一个故意留有漏洞样例的测试目录练手（例如配套靶场里的 `vulnerable_app/`）：
 
 ```bash
-node dolphin-patrol.js --local D:\Dolphin_Testbed\vulnerable_app
+node dolphin-patrol.js --local <靶场目录>\vulnerable_app
 ```
 
 ### 运行期间
@@ -156,19 +156,19 @@ node dolphin-patrol.js --local D:\Dolphin_Testbed\vulnerable_app
 
 ```
 [Dolphin] 巡逻完成：共 N 处（ERROR x / WARNING y / INFO z）
-[Dolphin] 报告：D:\Dolphin\reports\patrol-local-20260901-210000.json
+[Dolphin] 报告：<插件目录>\reports\patrol-local-20260901-210000.json
 ```
 
 ---
 
 ## 第 5 步：查看扫描结果
 
-**运行完命令后，扫描结果会保存在 `D:\Dolphin\reports\*.json` 中。
+**运行完命令后，扫描结果会保存在 `<插件目录>\reports\*.json` 中。
 建议使用 VS Code 或 Chrome 浏览器打开查看 JSON，或者用鼠标右键选择"用记事本打开"。**
 
 具体操作：
 
-1. 打开「文件资源管理器」，进入 `D:\Dolphin\reports\` 目录。
+1. 打开「文件资源管理器」，进入 `<插件目录>\reports\` 目录。
 2. 找到刚刚生成的 `.json` 文件（文件名形如 `patrol-local-20260901-210000.json`，中间的日期时间是生成时刻）。
 3. **推荐方式**：在该文件上**鼠标右键 → 打开方式 → 选择「Visual Studio Code」或「Google Chrome」**。
    - 用 **VS Code** 打开：有语法高亮和折叠，最易读。

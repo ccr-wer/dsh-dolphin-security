@@ -7,7 +7,7 @@
 > Transforming the penetration-testing methodology (Reconnaissance → Vulnerability Detection → Exploitation Validation → Reporting) into a **proactive defense patrol workflow**.
 > Instead of waiting passively for alerts, Dolphin patrols your hosts on schedule — the way a dolphin swims its route.
 
-Current release: **v0.2.5** (fixes the `@deepseek-ai/dsh-tools` version range in `peerDependencies` — prerelease versions only match within the same version tuple, so the previous range would fail assembly under strict peer validation; the new range aligns with and covers the DSH 0.1.5 series)
+Current release: **v0.2.6** (built-in ruleset expanded from 1 to 162 rules — 161 from GitLab SAST Rules plus 1 in-house CWE-798 rule; `check_id` path-prefix normalization; a platform hard gate for portable wheel bundles; fixes for deployment error reporting and venv leftovers)
 
 [简体中文](./README.md) | [English](./README_EN.md)
 
@@ -163,7 +163,7 @@ node dolphin-patrol.js --patrol server01 /srv/app
 All results are normalized into the **SecurityFinding** model and archived as JSON:
 
 ```
-D:\Dolphin\reports\
+<plugin dir>\reports\
 ├── patrol-local-20260831-223652.json      # local scan report
 ├── patrol-server01-20260901-200652.json   # remote patrol report
 └── dolphin-report-*.md / *.json           # reports from dolphin-core
@@ -234,8 +234,8 @@ const result = await runPatrol('server01', '/srv/app')
 if (result.ok) console.log(result.reportFile)
 
 // Build a remote scan command (pure function)
-buildRemoteScanCommand('/srv/app', 'p/security-audit')
-// → semgrep scan --config p/security-audit /srv/app --json
+buildRemoteScanCommand('/srv/app', 'rules/dolphin-core.yml')
+// → semgrep scan --config rules/dolphin-core.yml /srv/app --json
 ```
 
 > When running `runPatrol` with an engine you created yourself, remember to call `engine.dispose()` when done — the engine holds a connection pool and keepalive timers that keep the Node event loop alive.
@@ -270,16 +270,16 @@ Dolphin itself is released under the **MIT** license.
 
 ### pnpm errors while installing a DSH plugin
 
-**Error symptom** (may appear when installing via `dsh plugin --profile web add dsh-dolphin-security` under `D:\DSH`):
+**Error symptom** (may appear when installing via `dsh plugin --profile web add dsh-dolphin-security` under the DSH home directory):
 
 ```
 [ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: ssh2@1.17.0, cpu-features@0.0.10
-dsh: pnpm failed in profile directory D:\DSH\profiles\web
+dsh: pnpm failed in profile directory <DSH_HOME>\profiles\web
 ```
 
 **Root cause**: for security reasons, pnpm refuses to run build scripts of dependencies by default. It therefore blocks `ssh2` and `cpu-features` from compiling, making pnpm exit with a non-zero status so dsh treats the plugin install as failed (the dependency is written but the bundle is never registered).
 
-**Fix**: `cd` into the DSH profile directory (e.g. `D:\DSH\profiles\web` — the directory that holds `pnpm-workspace.yaml`) and run:
+**Fix**: `cd` into the DSH profile directory (e.g. `<DSH_HOME>\profiles\web` — the directory that holds `pnpm-workspace.yaml`) and run:
 
 ```bash
 pnpm approve-builds --all

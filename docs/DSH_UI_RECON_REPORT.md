@@ -1,6 +1,6 @@
 # 插件 UI 启动排查分析报告（DSH_UI_RECON_REPORT.md）
 
-> 扫描对象：D:\Dolphin（dolphin-patrol.js / dolphin-core.js / dolphin-ssh-core.js / package.json / cordis.patch.yml）
+> 扫描对象：Dolphin 工作区根目录（dolphin-patrol.js / dolphin-core.js / dolphin-ssh-core.js / package.json / cordis.patch.yml）
 > 对照样本：dsh-web 全家桶中已上线的双面插件 dsh-ssh（@linxin666/dsh-ssh v0.3.6）、纯 UI 插件 dsh-client-ui-skill-explorer，以及纯功能型插件 dsh-code-scan（同为无 UI 形态）
 > 日期：2026-09-02
 

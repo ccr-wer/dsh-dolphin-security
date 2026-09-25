@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // 职责：
 //   1. 直接复用 dsh-code-scan 的 scanDirectory() 作为底层 semgrep 扫描器
-//   2. 规则集注入：默认注入 p/security-audit（通过 scanDirectory 的 rulesConfig）
+//   2. 规则集注入：默认注入本地规则集 rules/dolphin-core.yml（MIT/Apache-2.0）
 //   3. 数据增强：捕获 semgrep 原始 JSON，提取 metadata / start.col / end / extra.lines，
 //      映射成结构化 SecurityFinding
 //   4. 输出融合：同时产出 Markdown 巡检报告 + 结构化 JSON 报告，写入 reports/ 目录
@@ -16,14 +16,14 @@
 // ============================================================================
 
 import { scanDirectory } from './dsh-code-scan/lib/scanner.js'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 // ---- 常量 ----------------------------------------------------------------
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPORTS_DIR = join(__dirname, 'reports')
-const DEFAULT_RULES = `p/security-audit p/owasp-top-ten ${join(__dirname, 'rules', 'dolphin-core.yml')}`
+const DEFAULT_RULES = join(__dirname, 'rules', 'dolphin-core.yml')
 const DEFAULT_TIMEOUT = 120000
 const DEFAULT_MAX_FINDINGS = 200
 
@@ -40,6 +40,57 @@ const DEFAULT_MAX_FINDINGS = 200
 //   remediationHint: string          修复建议（从 metadata/fix/cwe 推导）
 //   metadata:        object|null     原始 metadata（r.extra.metadata）
 // }
+
+// ---- 规则 ID 归一化：剥离 semgrep 注入的配置路径前缀 -------------------------
+// 背景（semgrep 1.175.0 实测）：--config 指向本地文件时，semgrep 会把「配置路径」
+// 点号化后拼到 check_id 前面，例如：
+//   rules.dolphin.hardcoded-credentials
+//   D.DSH.profiles.web.node_modules.dsh-dolphin-security.rules.dolphin.hardcoded-credentials
+// 前缀形态 = dotted(relpath(config, 子进程 cwd))；当 config 不在 cwd 子树内（含跨盘，
+// 也就是插件挂在 DSH 下的实际情况）时直接退化为 dotted(绝对路径)。
+// 后果：规则 ID 随安装位置漂移、泄漏本机绝对路径、跨机不可移植，
+// 也与 README / CHANGELOG 里写的 `dolphin.hardcoded-credentials` 不一致。
+//
+// 修法：不去猜前缀（改相对路径无效 —— cwd 不可预期，且 config 不在 cwd 子树内时
+// semgrep 照样回退绝对路径），改为「拿规则文件里的真实 ID 集合做后缀精确匹配」。
+// 只依赖规则文件自身内容，与 semgrep 版本、cwd、盘符、远端路径全都无关。
+const RULE_ID_LINE = /^[ \t]*-[ \t]+id:[ \t]*(\S+)[ \t]*$/gm
+
+// 规则文件 → ID 集合，按 config 字符串缓存（进程内只读一次盘）。
+// registry 包（p/... 等）与非本地路径读不到文件，静默得空集 —— 它们本来也不带前缀。
+const ruleIdIndexCache = new Map()
+
+export function buildRuleIdIndex(rulesConfig) {
+  const ids = new Set()
+  for (const rc of String(rulesConfig ?? '').split(/\s+/).filter(Boolean)) {
+    let local = ruleIdIndexCache.get(rc)
+    if (!local) {
+      local = new Set()
+      try {
+        for (const m of readFileSync(rc, 'utf8').matchAll(RULE_ID_LINE)) local.add(m[1])
+      } catch {
+        // 读不到就保持空集：归一化退化为原样透传，绝不猜
+      }
+      ruleIdIndexCache.set(rc, local)
+    }
+    for (const id of local) ids.add(id)
+  }
+  return ids
+}
+
+// 归一化单个 check_id：前缀本就干净（命中白名单）→ 原样返回；
+// 否则取「最长的后缀匹配」剥离前缀 —— 取最长是为了避免规则 ID 之间
+// 存在后缀关系时把正常 ID 截短。
+export function normalizeCheckId(checkId, ruleIds) {
+  if (typeof checkId !== 'string' || checkId === '') return 'unknown'
+  if (!ruleIds || ruleIds.size === 0) return checkId
+  if (ruleIds.has(checkId)) return checkId
+  let best = null
+  for (const id of ruleIds) {
+    if (checkId.endsWith('.' + id) && (best === null || id.length > best.length)) best = id
+  }
+  return best ?? checkId
+}
 
 // ---- 修复建议推导 ----------------------------------------------------------
 function resolveRemediation(meta, extra) {
@@ -63,8 +114,10 @@ function resolveRemediation(meta, extra) {
 }
 
 // ---- 数据增强：semgrep 原始 results → SecurityFinding[] ---------------------
-export function extractStructuredFindings(rawResults) {
+export function extractStructuredFindings(rawResults, options = {}) {
   if (!Array.isArray(rawResults)) return []
+  // 规则 ID 白名单：默认用内置规则集，调用方可传自定义 rulesConfig 的索引
+  const ruleIds = options.ruleIds ?? buildRuleIdIndex(DEFAULT_RULES)
   return rawResults
     .filter((r) => r && r.path && r.start && typeof r.start.line === 'number' && r.extra)
     .map((r) => {
@@ -77,7 +130,7 @@ export function extractStructuredFindings(rawResults) {
           ? { line: r.end.line, col: typeof r.end.col === 'number' ? r.end.col : null }
           : null,
         severity: r.extra.severity || 'INFO',
-        checkId: r.check_id || 'unknown',
+        checkId: normalizeCheckId(r.check_id, ruleIds),
         message: r.extra.message || '',
         codeSnippet: typeof r.extra.lines === 'string' ? r.extra.lines : null,
         remediationHint: resolveRemediation(meta, r.extra),
@@ -170,6 +223,17 @@ export function timestamp() {
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`
 }
 
+// ---- 输出融合：Markdown + JSON 双报告落盘（runScan 与 --mock 自测路径共用）----
+function writeReports(findings, meta, reportsDir = REPORTS_DIR) {
+  mkdirSync(reportsDir, { recursive: true })
+  const ts = timestamp()
+  const mdPath = join(reportsDir, `dolphin-report-${ts}.md`)
+  const jsonPath = join(reportsDir, `dolphin-report-${ts}.json`)
+  writeFileSync(mdPath, buildMarkdown(findings, meta), 'utf8')
+  writeFileSync(jsonPath, JSON.stringify(buildJsonPayload(findings, meta), null, 2), 'utf8')
+  return { mdPath, jsonPath }
+}
+
 // ---- 主扫描流程 ------------------------------------------------------------
 export async function runScan(targetDir, options = {}) {
   const rulesConfig = options.rulesConfig ?? DEFAULT_RULES
@@ -190,7 +254,10 @@ export async function runScan(targetDir, options = {}) {
   }
 
   // 3. 数据增强：原始 results → SecurityFinding[]
-  const findings = sortFindings(extractStructuredFindings(outcome.rawResults))
+  //    ruleIds 用本次实际生效的 rulesConfig 构建，覆盖调用方自定义规则集的场景
+  const findings = sortFindings(
+    extractStructuredFindings(outcome.rawResults, { ruleIds: buildRuleIdIndex(rulesConfig) }),
+  )
   const total = findings.length
   const truncated = total > maxFindings
   const shown = truncated ? findings.slice(0, maxFindings) : findings
@@ -205,12 +272,7 @@ export async function runScan(targetDir, options = {}) {
   }
 
   // 4. 输出融合：写 Markdown + JSON 到 reports/
-  mkdirSync(REPORTS_DIR, { recursive: true })
-  const ts = timestamp()
-  const mdPath = join(REPORTS_DIR, `dolphin-report-${ts}.md`)
-  const jsonPath = join(REPORTS_DIR, `dolphin-report-${ts}.json`)
-  writeFileSync(mdPath, buildMarkdown(shown, meta), 'utf8')
-  writeFileSync(jsonPath, JSON.stringify(buildJsonPayload(shown, meta), null, 2), 'utf8')
+  const { mdPath, jsonPath } = writeReports(shown, meta)
 
   return {
     ok: true,
@@ -284,8 +346,8 @@ Dolphin 主动巡检核心（dolphin-core.js）
   node dolphin-core.js --mock [目录]   用内置 mock 数据自测完整管线（无需 semgrep）
 
 说明：
-  默认规则集：p/security-audit
-  输出：D:\\Dolphin\\reports\\dolphin-report-<时间戳>.{md,json}
+  默认规则集：rules/dolphin-core.yml（MIT/Apache-2.0，源自 GitLab SAST Rules）
+  输出：<插件目录>/reports/dolphin-report-<时间戳>.{md,json}
 `)
     return
   }
@@ -306,12 +368,7 @@ Dolphin 主动巡检核心（dolphin-core.js）
       truncated: false,
       summary: summarize(findings),
     }
-    mkdirSync(REPORTS_DIR, { recursive: true })
-    const ts = timestamp()
-    const mdPath = join(REPORTS_DIR, `dolphin-report-${ts}.md`)
-    const jsonPath = join(REPORTS_DIR, `dolphin-report-${ts}.json`)
-    writeFileSync(mdPath, buildMarkdown(findings, meta), 'utf8')
-    writeFileSync(jsonPath, JSON.stringify(buildJsonPayload(findings, meta), null, 2), 'utf8')
+    const { mdPath, jsonPath } = writeReports(findings, meta)
     console.log(`[Dolphin] 结构化提取：${findings.length} 条`)
     for (const f of findings) {
       console.log(`  - [${f.severity}] ${f.file}:${f.line}:${f.col} ${f.checkId}`)

@@ -5,7 +5,7 @@
 // 「手」（dolphin-ssh-core.js 的 createSshEngine）接到一起，形成最小闭环：
 //
 //   远程主机 ──(SSH)──▶ 执行 semgrep 扫描 ──▶ 回传结果 ──▶ 映射 SecurityFinding
-//        └────────────────────────────────────────────▶ 存档 D:\Dolphin\reports\
+//        └────────────────────────────────────────────▶ 存档 <插件目录>/reports/
 //
 // 用法：
 //   node dolphin-patrol.js                        自检（无需真实主机）
@@ -21,7 +21,8 @@
 import { createHostStore, createSshEngine } from './dolphin-ssh-core.js'
 import { scanDirectory } from './dsh-code-scan/lib/scanner.js'
 // 严重级别排序/统计/时间戳统一复用 dolphin-core 的实现（此前两处各存一份副本）
-import { extractStructuredFindings, sortFindings, summarize, timestamp } from './dolphin-core.js'
+// buildRuleIdIndex / normalizeCheckId：check_id 路径前缀归一化（详见 dolphin-core.js 顶部说明）
+import { buildRuleIdIndex, extractStructuredFindings, normalizeCheckId, sortFindings, summarize, timestamp } from './dolphin-core.js'
 import { mkdirSync, writeFileSync, existsSync, rmSync, statSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -31,13 +32,13 @@ import { spawnSync } from 'node:child_process'
 // ---- 常量 -----------------------------------------------------------------
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPORTS_DIR = process.env.DOLPHIN_REPORTS_DIR ?? join(__dirname, 'reports')
-// 默认规则集（空格分隔多包，--config 逐包展开）：security-audit 覆盖 CWE-78/489，
-// owasp-top-ten 补齐其空白（CWE-79/89/22/95，见 docs/RULESET_RESEARCH.md 实测），
-// rules/dolphin-core.yml 为自建的硬编码凭据规则（官方 registry 的
-// hardcoded-password-default 已消失，CWE-798 全线漏报，故随 npm 包分发）。
-// 自建规则用 __dirname 绝对路径：消费者在任意 cwd 运行时都能解析到包内文件，
+// 默认规则集：本地 rules/dolphin-core.yml（MIT/Apache-2.0，源自 GitLab SAST Rules，
+// 覆盖 java/python/javascript/go 共 161 条）。仅使用可转售许可（MIT/Apache-2.0）的规则，
+// 刻意不引入 semgrep 官方 registry 包（p/security-audit、p/owasp-top-ten 等受
+// Semgrep Rules License v1.0 约束、禁转售），以规避商业化分发的合规风险。
+// 用 __dirname 绝对路径：消费者在任意 cwd 运行时都能解析到包内文件，
 // 远程巡逻时由规则上传逻辑（existsSync 检测）自动改写为远端路径。
-const DEFAULT_RULES = `p/security-audit p/owasp-top-ten ${join(__dirname, 'rules', 'dolphin-core.yml')}`
+const DEFAULT_RULES = join(__dirname, 'rules', 'dolphin-core.yml')
 const DEFAULT_SCAN_TIMEOUT = 120000
 const DEFAULT_MAX_FINDINGS = 200
 
@@ -71,6 +72,15 @@ function shellQuote(value) {
   // 只含安全字符（路径 / 冒号 / 等号 / @ 等）时原样返回，可读性更好
   if (/^[A-Za-z0-9_./:=@%+,-]+$/.test(s)) return s
   return "'" + s.replace(/'/g, "'\\''") + "'"
+}
+
+// 报告落盘：统一「建目录 → 序列化 → 写文件」三步，runPatrol / runLocalScan 共用，
+// 避免两处各自维护同一套写入逻辑（曾出现两处字段顺序漂移）。
+function writeJsonReport(reportsDir, fileName, payload) {
+  const reportFile = join(reportsDir, fileName)
+  mkdirSync(reportsDir, { recursive: true })
+  writeFileSync(reportFile, JSON.stringify(payload, null, 2), 'utf8')
+  return reportFile
 }
 
 // ============================================================================
@@ -225,8 +235,16 @@ export function prepareWheelBundle(cacheDir = WHEEL_CACHE_DIR, pythonVersion = '
     const files = existing.map((f) => ({ path: join(cacheDir, f), size: statSync(join(cacheDir, f)).size }))
     return { files, totalBytes: files.reduce((a, f) => a + f.size, 0), fromCache: true }
   }
+  // 平台一致性硬闸门：便携包目标是 Linux x86_64（WHEEL_PLATFORMS 全是 manylinux），
+  // 在 Windows 宿主上用 `pip download --platform=manylinux*` 只改 wheel 标签、不改
+  // 环境标记求值（sys_platform=="win32" 仍为真），会静默退避到带旧 protobuf 的
+  // semgrep 1.136.0，装到远端在 py3.13+ 上崩溃。宁可明确失败，不静默备出坏包。
+  // 缓存命中路径不受影响：缓存是用户/远端侧预置的、已经正确的包。
+  if (process.platform === 'win32') {
+    return { files: [], totalBytes: 0, fromCache: false, error: '当前宿主是 Windows，无法为 Linux 目标备 wheel，请在 Linux 侧下载或预置缓存（DOLPHIN_SEMGREP_CACHE）' }
+  }
   // 本机 pip download：--only-binary + --platform 强制拉 Linux x86_64 wheel，
-  // 与本机操作系统无关（Windows 本机也能为 Linux 远端备货）。
+  // 与本机操作系统无关（非 Windows 宿主下为 Linux 远端备货）。
   const args = [
     '-m', 'pip', 'download', 'semgrep',
     '--only-binary=:all:',
@@ -257,6 +275,15 @@ export function buildPortableInstallCommands(bundleDir, pkgDir) {
     viaPip: `python3 -m pip install --no-index --no-cache-dir --find-links ${shellQuote(bundleDir)} --target ${shellQuote(pkgDir)} semgrep`,
     viaZipfile: `python3 -c "import zipfile,glob; [zipfile.ZipFile(w).extractall(${JSON.stringify(pkgDir)}) for w in glob.glob(${JSON.stringify(bundleDir)} + '/*.whl')]"`,
   }
+}
+
+// 便携包失败时的错误信息组合（纯函数，便于单测）：优先取真正失败那一步的
+// stderr/stdout，而不是第一个非空字段。否则 pip 安装成功时 stderr 里的
+// dependency-resolver warning 会顶掉 semgrep --version 的真实 traceback。
+export function composePortableError(ins, v) {
+  const pick = (r) => String(r?.stderr || r?.stdout || '').trim()
+  if (ins && ins.exitCode !== 0) return pick(ins) || pick(v)
+  return pick(v) || pick(ins)
 }
 
 /**
@@ -297,10 +324,12 @@ export async function provisionRemoteSemgrep(engine, alias, { console } = {}) {
   try {
     if (await probeHasCommand(engine, alias, 'python3')) {
       venvDir = `/tmp/dolphin-venv-${Date.now()}`
+      // 无论成败都登记：python3 -m venv 失败（如缺 python3-venv / ensurepip）也可能
+      // 留下部分目录，若不登记，/tmp 会累积空壳。
+      out.cleanupDirs.push(venvDir)
       say(`策略 venv：构建临时虚拟环境 ${venvDir}（远端拉取 ≈30MB，预计 1-3 分钟）`)
       const mk = await safeExec(engine, alias, `python3 -m venv ${shellQuote(venvDir)}`, VENV_SETUP_TIMEOUT)
       if (mk.exitCode === 0) {
-        out.cleanupDirs.push(venvDir)
         const pi = await safeExec(engine, alias, `${shellQuote(venvDir + '/bin/pip')} install --quiet semgrep`, VENV_SETUP_TIMEOUT)
         if (pi.exitCode === 0) {
           const v = await safeExec(engine, alias, `${shellQuote(venvDir + '/bin/semgrep')} --version`, PROBE_TIMEOUT)
@@ -366,7 +395,7 @@ export async function provisionRemoteSemgrep(engine, alias, { console } = {}) {
       say('策略 portable：离线安装并验证成功')
       return out
     }
-    out.error = `便携包安装/验证失败：${(ins.stderr || ins.stdout || v.stderr || '').slice(0, 200)}`
+    out.error = `便携包安装/验证失败：${(composePortableError(ins, v) || '未知原因').slice(0, 200)}`
     return out
   } catch (e) {
     out.error = `策略 portable：异常（${msg(e)}）`
@@ -523,35 +552,32 @@ export async function runPatrol(alias, targetDir, options = {}) {
     }
 
     // 4. 映射为 Dolphin 统一 SecurityFinding（复用 dolphin-core 的提取器 + 补 host 维度）
-    const findings = sortFindings(extractStructuredFindings(rawResults)).map((f) => ({ host: alias, ...f }))
+    //    规则 ID 白名单必须用「本地」rulesConfig 构建：remoteRules（上方映射产物）是远端
+    //    路径，本机读不到文件，拿它建索引会得到空集、前缀就剥不掉了。
+    const findings = sortFindings(
+      extractStructuredFindings(rawResults, { ruleIds: buildRuleIdIndex(rulesConfig) }),
+    ).map((f) => ({ host: alias, ...f }))
     const total = findings.length
     const truncated = total > maxFindings
     const shown = truncated ? findings.slice(0, maxFindings) : findings
 
     // 5. 存档到 reports/（结构化 JSON，可直接消费）
-    const ts = timestamp()
-    const reportFile = join(reportsDir, `patrol-${alias}-${ts}.json`)
-    mkdirSync(reportsDir, { recursive: true })
-    writeFileSync(
-      reportFile,
-      JSON.stringify({
-        generatedAt: new Date().toISOString(),
-        host: alias,
-        targetDir,
-        rulesConfig,
-        deploy: {
-          strategy: deploy.strategy,
-          uploadBytes: deploy.uploadBytes,
-          remoteDownloadBytes: deploy.remoteDownloadBytes,
-          notes: deploy.notes,
-        },
-        total,
-        truncated,
-        summary: summarize(shown),
-        findings: shown,
-      }, null, 2),
-      'utf8',
-    )
+    const reportFile = writeJsonReport(reportsDir, `patrol-${alias}-${timestamp()}.json`, {
+      generatedAt: new Date().toISOString(),
+      host: alias,
+      targetDir,
+      rulesConfig,
+      deploy: {
+        strategy: deploy.strategy,
+        uploadBytes: deploy.uploadBytes,
+        remoteDownloadBytes: deploy.remoteDownloadBytes,
+        notes: deploy.notes,
+      },
+      total,
+      truncated,
+      summary: summarize(shown),
+      findings: shown,
+    })
 
     return {
       ok: true,
@@ -600,27 +626,23 @@ export async function runLocalScan(targetDir, options = {}) {
   const outcome = await scanDirectory(targetDir, { rulesConfig, timeoutMs, maxFindings, raw: true })
   if (!outcome.ok) return { ok: false, host: 'local', error: outcome.message }
 
-  const findings = sortFindings(extractStructuredFindings(outcome.rawResults)).map((f) => ({ host: 'local', ...f }))
+  const findings = sortFindings(
+    extractStructuredFindings(outcome.rawResults, { ruleIds: buildRuleIdIndex(rulesConfig) }),
+  ).map((f) => ({ host: 'local', ...f }))
   const total = findings.length
   const truncated = total > maxFindings
   const shown = truncated ? findings.slice(0, maxFindings) : findings
 
-  const reportFile = join(reportsDir, `patrol-local-${timestamp()}.json`)
-  mkdirSync(reportsDir, { recursive: true })
-  writeFileSync(
-    reportFile,
-    JSON.stringify({
-      generatedAt: new Date().toISOString(),
-      host: 'local',
-      targetDir: resolve(targetDir),
-      rulesConfig,
-      total,
-      truncated,
-      summary: summarize(shown),
-      findings: shown,
-    }, null, 2),
-    'utf8',
-  )
+  const reportFile = writeJsonReport(reportsDir, `patrol-local-${timestamp()}.json`, {
+    generatedAt: new Date().toISOString(),
+    host: 'local',
+    targetDir: resolve(targetDir),
+    rulesConfig,
+    total,
+    truncated,
+    summary: summarize(shown),
+    findings: shown,
+  })
 
   return {
     ok: true,
@@ -662,7 +684,7 @@ export async function test() {
 
   // 2. buildRemoteScanCommand
   console.log('\n【2】buildRemoteScanCommand')
-  const c1 = buildRemoteScanCommand('/var/www/app', 'p/security-audit')
+  const c1 = buildRemoteScanCommand('/var/www/app', 'rules/dolphin-core.yml')
   check('含 semgrep scan', c1.startsWith('semgrep scan'), c1)
   check('含 --config', c1.includes('--config'))
   check('含 --json', c1.includes('--json'))
@@ -675,8 +697,8 @@ export async function test() {
   // 多 token 语义：含空格的 rulesConfig 被拆成多个 --config；每段仍经 shellQuote，
   // 恶意串（rm -rf 等）沦为 --config 的字面参数值，注入被中性化。
   check('恶意规则集被拆分转义（rm -rf 沦为 config 值）', c4 === "semgrep scan --config 'p/foo'\\'';' --config rm --config -rf --config '/tmp/x;' --config '#' /x --json", c4)
-  const c7 = buildRemoteScanCommand('/x', 'p/security-audit p/owasp-top-ten rules/dolphin-core.yml')
-  check('多规则包逐包展开 --config', c7 === "semgrep scan --config p/security-audit --config p/owasp-top-ten --config rules/dolphin-core.yml /x --json", c7)
+  const c7 = buildRemoteScanCommand('/x', 'rules/a.yml rules/b.yml rules/dolphin-core.yml')
+  check('多规则包逐包展开 --config', c7 === "semgrep scan --config rules/a.yml --config rules/b.yml --config rules/dolphin-core.yml /x --json", c7)
 
   // 3. SecurityFinding 映射（复用 extractStructuredFindings + host 维度）
   console.log('\n【3】SecurityFinding 映射')
@@ -711,6 +733,36 @@ export async function test() {
   check('映射字段完整', mapped.every((f) => f.host && f.file && typeof f.line === 'number' && f.severity && f.checkId && f.message !== undefined))
   check('映射含 codeSnippet/remediationHint', mapped.every((f) => 'codeSnippet' in f && 'remediationHint' in f))
   check('ERROR 优先排序', mapped[0].severity === 'ERROR', mapped.map((f) => f.severity).join(','))
+
+  // 3b. check_id 路径前缀剥离
+  //     semgrep 对「文件型 --config」会把配置路径点号化后拼到 check_id 前面，
+  //     形态 = dotted(relpath(config, 子进程 cwd))；config 不在 cwd 子树内时退化为
+  //     完整绝对路径（DSH 下的实测形态就是插件安装路径）。
+  //     这一条断言同时锁两件事：① 带前缀的 ID 被剥成纯规则 ID；② 规则文件里的
+  //     全部 ID 原样幂等 —— 防止剥离逻辑把正常 ID 截短。
+  console.log('\n【3b】check_id 前缀剥离（路径前缀归一化）')
+  const ruleIds = buildRuleIdIndex(DEFAULT_RULES)
+  const prefixed = [
+    // DSH 挂载实测形态（完整安装绝对路径）
+    'D.DSH.profiles.web.node_modules.dsh-dolphin-security.rules.dolphin.hardcoded-credentials',
+    // cwd 为插件祖先目录时的短前缀形态
+    'rules.javascript_eval_rule-eval-with-expression',
+    // 远端巡逻形态（远端部署路径，含非点号分隔片段）
+    '/tmp/dolphin-rules-abc123/rules.python_flask_rule-app-debug',
+  ]
+  const expectStripped = [
+    'dolphin.hardcoded-credentials',
+    'javascript_eval_rule-eval-with-expression',
+    'python_flask_rule-app-debug',
+  ]
+  const stripped = prefixed.map((id) => normalizeCheckId(id, ruleIds))
+  const stripOk = stripped.every((v, i) => v === expectStripped[i])
+  const idempotent = [...ruleIds].every((id) => normalizeCheckId(id, ruleIds) === id)
+  check(
+    'check_id 前缀剥离（前缀 → 纯规则 ID，且全部规则 ID 幂等）',
+    stripOk && idempotent && ruleIds.size > 0,
+    `规则数=${ruleIds.size}；${prefixed[0].slice(0, 34)}… → ${stripped[0]}；幂等=${idempotent}`,
+  )
 
   // 4. 健康检查降级（坏 alias，不碰网络）
   console.log('\n【4】runPatrol 健康检查降级')
@@ -784,6 +836,32 @@ export async function test() {
   check('便携包缓存命中（不联网）', wb.fromCache === true && wb.files.length === 1 && wb.totalBytes === 4)
   rmSync(fakeCache, { recursive: true, force: true })
 
+  // 平台一致性硬闸门：Windows 宿主、缓存未命中时应明确拒绝而非静默备坏包。
+  const emptyCache = join(tmpdir(), `dolphin-wheel-cache-empty-${Date.now()}`)
+  mkdirSync(emptyCache, { recursive: true })
+  const wbEmpty = prepareWheelBundle(emptyCache, '3.11')
+  if (process.platform === 'win32') {
+    check('Windows 宿主拒绝本地备 Linux wheel（明确失败不备坏包）',
+      wbEmpty.files.length === 0 && /Windows/.test(wbEmpty.error || ''), wbEmpty.error)
+  } else {
+    console.log('  [SKIP] 非 Windows 宿主，跳过平台拒绝自检')
+  }
+  rmSync(emptyCache, { recursive: true, force: true })
+
+  // 错误信息组合：pip 安装成功但 --version 验证失败时，必须取验证步的真实 traceback，
+  // 而不是 pip stderr 里的 dependency-resolver warning。
+  const e1 = composePortableError(
+    { exitCode: 0, stderr: 'WARNING: pip dependency resolver', stdout: '' },
+    { exitCode: 1, stderr: 'TypeError: Metaclasses with custom tp_new are not supported', stdout: '' },
+  )
+  check('便携包错误信息优先取失败步（不被 pip warning 顶掉）',
+    e1.includes('TypeError') && !e1.includes('resolver'), e1)
+  const e2 = composePortableError(
+    { exitCode: 1, stderr: 'ERROR: No matching distribution found for semgrep', stdout: '' },
+    { exitCode: 1, stderr: 'TypeError: Metaclasses', stdout: '' },
+  )
+  check('安装失败时取安装步 stderr', e2.includes('No matching distribution'), e2)
+
   const pass = results.filter((r) => r.pass).length
   const fail = results.length - pass
   console.log('\n──────────────────────────────────────────────────────────────────────')
@@ -809,7 +887,7 @@ Dolphin 主动巡检控制器（dolphin-patrol.js）
 远端无 semgrep 时自动按隔离策略部署（pipx → 临时 venv → 便携包上传），
 全程不使用 sudo / --break-system-packages，临时目录扫描后自动清理。
 便携包缓存：DOLPHIN_SEMGREP_CACHE（默认 ~/.dolphin/semgrep-wheel-cache）。
-输出：D:\\Dolphin\\reports\\patrol-<host>-<时间戳>.json
+输出：<插件目录>/reports/patrol-<host>-<时间戳>.json（可用 DOLPHIN_REPORTS_DIR 覆写）
 `)
     return
   }

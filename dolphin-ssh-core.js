@@ -9,7 +9,7 @@
 //   → 本文件零 DSH 依赖、零对外网络回连，运行时唯一三方依赖是 ssh2。
 //
 // 模块格式说明（重要）：
-//   D:\Dolphin\package.json 声明了 "type": "module"，同目录的 dolphin-core.js
+//   本包 package.json 声明了 "type": "module"，同目录的 dolphin-core.js
 //   也是 ESM。在 type:module 下，.js 文件无法使用 require / module.exports，
 //   强行写 CJS 会导致 node 直接抛 ReferenceError。因此本文件为 ESM，
 //   但对 CJS 生态的 ssh2 使用 createRequire 兼容加载，调用方式与 CJS 一致：
@@ -1124,7 +1124,7 @@ export function createSshEngine(store, options) {
 // ============================================================================
 // 8. 自检：node dolphin-ssh-core.js
 // ----------------------------------------------------------------------------
-// 全程不建立任何真实连接，不写 D:\Dolphin，临时库放在系统临时目录。
+// 全程不建立任何真实连接，不写仓库目录，临时库放在系统临时目录。
 // ============================================================================
 
 async function selfTest() {

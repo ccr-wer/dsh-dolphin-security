@@ -1,0 +1,2664 @@
+{
+  "generated": "2026-09-22",
+  "upstream": "https://gitlab.com/gitlab-org/security-products/sast-rules",
+  "upstream_commit": "53bf5cf6df3c51b6c02110f5a638b5e6213666cd",
+  "total_rules": 162,
+  "unique_ids": 162,
+  "per_area": {
+    "java": 55,
+    "python": 68,
+    "javascript": 11,
+    "go": 27,
+    "dolphin-self": 1
+  },
+  "license_summary": {
+    "MIT": 136,
+    "Apache-2.0": 26
+  },
+  "output": "rules/dolphin-core.yml",
+  "bytes": 430355,
+  "sha256": "c1c8b96098026729706aa8589164a53b2641259e7b2c16097f36a22a4be7fe0a",
+  "inconsistent_count": 0,
+  "rules": [
+    {
+      "id": "java_cookie_rule-CookieInsecure",
+      "source_area": "java",
+      "source_file": "java/cookie/rule-CookieInsecure.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_cookie_rule-HttpResponseSplitting",
+      "source_area": "java",
+      "source_file": "java/cookie/rule-HttpResponseSplitting.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_cookie_rule-RequestParamToHeader",
+      "source_area": "java",
+      "source_file": "java/cookie/rule-RequestParamToHeader.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_cors_rule-PermissiveCORSInjection",
+      "source_area": "java",
+      "source_file": "java/cors/rule-PermissiveCORSInjection.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-BlowfishKeySize",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-BlowfishKeySize.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-CipherDESInsecure",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-CipherDESInsecure.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-CipherDESedeInsecure",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-CipherDESedeInsecure.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-CipherECBMode",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-CipherECBMode.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-CipherIntegrity",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-CipherIntegrity.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-CipherPaddingOracle",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-CipherPaddingOracle.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-CustomMessageDigest",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-CustomMessageDigest.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-HazelcastSymmetricEncryption",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-HazelcastSymmetricEncryption.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-InsufficientKeySizeRsa",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-InsufficientKeySizeRsa.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-NullCipher",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-NullCipher.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-RsaNoPadding",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-RsaNoPadding.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-WeakMessageDigest",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-WeakMessageDigest.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-WeakTLSProtocol-DefaultHttpClient",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-WeakTLSProtocolDefaultHttpClient.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-WeakTLSProtocol-SSLContext",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-WeakTLSProtocolSSLContext.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_crypto_rule-WeakTLSProtocolVersion",
+      "source_area": "java",
+      "source_file": "java/crypto/rule-WeakTLSProtocolVersion.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_endpoint_rule-HostnameVerifier",
+      "source_area": "java",
+      "source_file": "java/endpoint/rule-HostnameVerifier.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_endpoint_rule-UnvalidatedRedirect",
+      "source_area": "java",
+      "source_file": "java/endpoint/rule-UnvalidatedRedirect.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_endpoint_rule-X509TrustManager",
+      "source_area": "java",
+      "source_file": "java/endpoint/rule-X509TrustManager.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_file_rule-FileUploadFileName",
+      "source_area": "java",
+      "source_file": "java/file/rule-FileUploadFileName.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_file_rule-FilenameUtils",
+      "source_area": "java",
+      "source_file": "java/file/rule-FilenameUtils.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_inject_rule-CommandInjection",
+      "source_area": "java",
+      "source_file": "java/inject/rule-CommandInjection.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_inject_rule-ELInjection",
+      "source_area": "java",
+      "source_file": "java/inject/rule-ELInjection.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_inject_rule-FileDisclosureRequestDispatcher",
+      "source_area": "java",
+      "source_file": "java/inject/rule-FileDisclosureRequestDispatcher.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_inject_rule-FileDisclosureSpringFramework",
+      "source_area": "java",
+      "source_file": "java/inject/rule-FileDisclosureSpringFramework.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_inject_rule-HttpParameterPollution",
+      "source_area": "java",
+      "source_file": "java/inject/rule-HttpParameterPollution.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_inject_rule-LDAPInjection",
+      "source_area": "java",
+      "source_file": "java/inject/rule-LDAPInjection.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_inject_rule-OgnlInjection",
+      "source_area": "java",
+      "source_file": "java/inject/rule-OgnlInjection.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_inject_rule-SpotbugsPathTraversalAbsolute",
+      "source_area": "java",
+      "source_file": "java/inject/rule-SpotbugsPathTraversalAbsolute.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_ldap_rule-AnonymousLDAP",
+      "source_area": "java",
+      "source_file": "java/ldap/rule-AnonymousLDAP.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_password_rule-ConstantDBPassword",
+      "source_area": "java",
+      "source_file": "java/password/rule-ConstantDBPassword.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_password_rule-EmptyDBPassword",
+      "source_area": "java",
+      "source_file": "java/password/rule-EmptyDBPassword.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_password_rule-HardcodePassword",
+      "source_area": "java",
+      "source_file": "java/password/rule-HardcodePassword.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_perm_rule-DangerousPermissions",
+      "source_area": "java",
+      "source_file": "java/perm/rule-DangerousPermissions.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_perm_rule-OverlyPermissiveFilePermissionInline",
+      "source_area": "java",
+      "source_file": "java/perm/rule-OverlyPermissiveFilePermissionInline.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_script_rule-ScriptInjection",
+      "source_area": "java",
+      "source_file": "java/script/rule-ScriptInjection.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_script_rule-SpringSpelExpressionParser",
+      "source_area": "java",
+      "source_file": "java/script/rule-SpringSpelExpressionParser.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_smtp_rule-InsecureSmtp",
+      "source_area": "java",
+      "source_file": "java/smtp/rule-InsecureSmtp.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_smtp_rule-SmtpClient",
+      "source_area": "java",
+      "source_file": "java/smtp/rule-SmtpClient.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_ssrf_rule-SSRF",
+      "source_area": "java",
+      "source_file": "java/ssrf/rule-SSRF.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_strings_rule-BadHexConversion",
+      "source_area": "java",
+      "source_file": "java/strings/rule-BadHexConversion.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_strings_rule-FormatStringManipulation",
+      "source_area": "java",
+      "source_file": "java/strings/rule-FormatStringManipulation.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_strings_rule-ModifyAfterValidation",
+      "source_area": "java",
+      "source_file": "java/strings/rule-ModifyAfterValidation.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_strings_rule-NormalizeAfterValidation",
+      "source_area": "java",
+      "source_file": "java/strings/rule-NormalizeAfterValidation.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_templateinjection_rule-TemplateInjection",
+      "source_area": "java",
+      "source_file": "java/templateinjection/rule-TemplateInjection.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_unsafe_rule-ExternalConfigControl",
+      "source_area": "java",
+      "source_file": "java/unsafe/rule-ExternalConfigControl.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_xml_rule-SAMLIgnoreComments",
+      "source_area": "java",
+      "source_file": "java/xml/rule-SAMLIgnoreComments.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_xml_rule-XmlDecoder",
+      "source_area": "java",
+      "source_file": "java/xml/rule-XmlDecoder.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_xml_rule-XsltTransform",
+      "source_area": "java",
+      "source_file": "java/xml/rule-XsltTransform.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_xss_rule-WicketXSS",
+      "source_area": "java",
+      "source_file": "java/xss/rule-WicketXSS.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_xss_rule-XSSReqParamToServletWriter",
+      "source_area": "java",
+      "source_file": "java/xss/rule-XSSReqParamToServletWriter.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "java_xxe_rule-XMLRdr",
+      "source_area": "java",
+      "source_file": "java/xxe/rule-XMLRdr.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_assert_rule-assert-used",
+      "source_area": "python",
+      "source_file": "python/assert/rule-assert-used.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_bind-all-interfaces_rule-general-bindall-interfaces",
+      "source_area": "python",
+      "source_file": "python/bind_all_interfaces/rule-general-bindall-interfaces.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-cipher-modes",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-cipher-modes.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-cipher-blowfish",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-cipher-blowfish.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-cipher-des",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-cipher-des.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-cipher-rc2",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-cipher-rc2.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-cipher-rc4",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-cipher-rc4.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-cipher-xor",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-cipher-xor.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-encrypt-dsa-rsa",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-encrypt-dsa-rsa.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-encrypt-ec",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-encrypt-ec.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-hash-md5",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-hash-md5.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-hash-sha1",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-hash-sha1.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-hazmat-cipher-arc4",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-hazmat-cipher-arc4.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-hazmat-cipher-blowfish",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-hazmat-cipher-blowfish.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto-hazmat-cipher-idea",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-hazmat-cipher-idea.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto.hazmat-hash-md5",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-hazmat-hash-md5.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-crypto.hazmat-hash-sha1",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-crypto-hazmat-hash-sha1.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-hash-md2",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-hash-md2.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-hash-md4",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-hash-md4.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-hash-md5",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-hash-md5.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-hash-sha1",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-hash-sha1.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-hashlib-new-insecure-functions",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-hashlib-new-insecure-functions.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_crypto_rule-import-pycrypto",
+      "source_area": "python",
+      "source_file": "python/crypto/rule-import-pycrypto.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_deserialization_rule-cpickle",
+      "source_area": "python",
+      "source_file": "python/deserialization/rule-cpickle.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_deserialization_rule-dill",
+      "source_area": "python",
+      "source_file": "python/deserialization/rule-dill.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_deserialization_rule-marshal",
+      "source_area": "python",
+      "source_file": "python/deserialization/rule-marshal.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_deserialization_rule-pickle",
+      "source_area": "python",
+      "source_file": "python/deserialization/rule-pickle.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_deserialization_rule-shelve",
+      "source_area": "python",
+      "source_file": "python/deserialization/rule-shelve.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_deserialization_rule-yaml-load",
+      "source_area": "python",
+      "source_file": "python/deserialization/rule-yaml-load.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_django_rule-django-extra-used",
+      "source_area": "python",
+      "source_file": "python/django/rule-django-extra-used.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_escaping_rule-jinja2-autoescape-false",
+      "source_area": "python",
+      "source_file": "python/escaping/rule-jinja2-autoescape-false.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_escaping_rule-use-of-mako-templates",
+      "source_area": "python",
+      "source_file": "python/escaping/rule-use-of-mako-templates.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_eval_rule-eval",
+      "source_area": "python",
+      "source_file": "python/eval/rule-eval.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_exec_rule-exec-used",
+      "source_area": "python",
+      "source_file": "python/exec/rule-exec-used.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_exec_rule-linux-command-wildcard-injection",
+      "source_area": "python",
+      "source_file": "python/exec/rule-linux-command-wildcard-injection.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_exec_rule-os-path",
+      "source_area": "python",
+      "source_file": "python/exec/rule-os-path.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_exec_rule-os-popen2",
+      "source_area": "python",
+      "source_file": "python/exec/rule-os-popen2.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_exec_rule-start-process-with-no-shell",
+      "source_area": "python",
+      "source_file": "python/exec/rule-start-process-with-no-shell.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_exec_rule-subprocess-call",
+      "source_area": "python",
+      "source_file": "python/exec/rule-subprocess-call.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_exec_rule-subprocess-popen-shell-true",
+      "source_area": "python",
+      "source_file": "python/exec/rule-subprocess-popen-shell-true.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_exec_rule-subprocess-shell-TRUE",
+      "source_area": "python",
+      "source_file": "python/exec/rule-subprocess-shell-TRUE.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_file-permissions_rule-general-bad-permission",
+      "source_area": "python",
+      "source_file": "python/file_permissions/rule-general-bad-permission.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_files_rule-tarfile-unsafe-members",
+      "source_area": "python",
+      "source_file": "python/files/rule-tarfile-unsafe-members.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_flask_rule-app-debug",
+      "source_area": "python",
+      "source_file": "python/flask/rule-app-debug.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_ftp_rule-ftplib",
+      "source_area": "python",
+      "source_file": "python/ftp/rule-ftplib.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_log_rule-logging-config-insecure-listen",
+      "source_area": "python",
+      "source_file": "python/log/rule-logging-config-insecure-listen.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_random_rule-random",
+      "source_area": "python",
+      "source_file": "python/random/rule-random.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_requests_rule-request-without-timeout",
+      "source_area": "python",
+      "source_file": "python/requests/rule-request-without-timeout.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_snmp_rule-insecure-snmp-version",
+      "source_area": "python",
+      "source_file": "python/snmp/rule-insecure-snmp-version.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_snmp_rule-snmp-weak-cryptography",
+      "source_area": "python",
+      "source_file": "python/snmp/rule-snmp-weak-cryptography.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_sql_rule-hardcoded-sql-expression",
+      "source_area": "python",
+      "source_file": "python/sql/rule-hardcoded-sql-expression.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_ssh_rule-ssh-nohost-key-verification",
+      "source_area": "python",
+      "source_file": "python/ssh/rule-ssh-nohost-key-verification.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_ssl_rule-req-no-certvalid",
+      "source_area": "python",
+      "source_file": "python/ssl/rule-req-no-certvalid.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_ssl_rule-ssl-no-version",
+      "source_area": "python",
+      "source_file": "python/ssl/rule-ssl-no-version.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_ssl_rule-ssl-with-bad-version",
+      "source_area": "python",
+      "source_file": "python/ssl/rule-ssl-with-bad-version.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_ssl_rule-unverified-context",
+      "source_area": "python",
+      "source_file": "python/ssl/rule-unverified-context.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_telnet_rule-import-telnib",
+      "source_area": "python",
+      "source_file": "python/telnet/rule-import-telnib.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_tmpdir_rule-hardcodedtmp",
+      "source_area": "python",
+      "source_file": "python/tmpdir/rule-hardcodedtmp.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_tmpdir_rule-mktemp-q",
+      "source_area": "python",
+      "source_file": "python/tmpdir/rule-mktemp-q.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_urlopen_rule-urllib-urlopen",
+      "source_area": "python",
+      "source_file": "python/urlopen/rule-urllib-urlopen.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_xml_rule-celement",
+      "source_area": "python",
+      "source_file": "python/xml/rule-celement.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_xml_rule-element",
+      "source_area": "python",
+      "source_file": "python/xml/rule-element.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_xml_rule-etree",
+      "source_area": "python",
+      "source_file": "python/xml/rule-etree.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_xml_rule-expatbuilder",
+      "source_area": "python",
+      "source_file": "python/xml/rule-expatbuilder.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_xml_rule-expatreader",
+      "source_area": "python",
+      "source_file": "python/xml/rule-expatreader.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_xml_rule-minidom",
+      "source_area": "python",
+      "source_file": "python/xml/rule-minidom.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_xml_rule-pulldom",
+      "source_area": "python",
+      "source_file": "python/xml/rule-pulldom.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "python_xml_rule-sax",
+      "source_area": "python",
+      "source_file": "python/xml/rule-sax.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "javascript_buf_rule-buffer-noassert-read",
+      "source_area": "javascript",
+      "source_file": "javascript/buf/rule-buffer-noassert-read.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "javascript_buf_rule-buffer-noassert-write",
+      "source_area": "javascript",
+      "source_file": "javascript/buf/rule-buffer-noassert-write.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "javascript_buf_rule-detect-new-buffer",
+      "source_area": "javascript",
+      "source_file": "javascript/buf/rule-detect-new-buffer.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "javascript_dos_rule-non-literal-regexp",
+      "source_area": "javascript",
+      "source_file": "javascript/dos/rule-non-literal-regexp.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "javascript_eval_rule-eval-with-expression",
+      "source_area": "javascript",
+      "source_file": "javascript/eval/rule-eval-with-expression.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "javascript_pathtraversal_rule-non-literal-fs-filename",
+      "source_area": "javascript",
+      "source_file": "javascript/pathtraversal/rule-non-literal-fs-filename.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "javascript_random_rule-pseudo-random-bytes",
+      "source_area": "javascript",
+      "source_file": "javascript/random/rule-pseudo-random-bytes.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "javascript_react_rule-dangerouslysetinnerhtml",
+      "source_area": "javascript",
+      "source_file": "javascript/react/rule-dangerouslysetinnerhtml.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "javascript_require_rule-non-literal-require",
+      "source_area": "javascript",
+      "source_file": "javascript/require/rule-non-literal-require.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "javascript_timing_rule-possible-timing-attacks",
+      "source_area": "javascript",
+      "source_file": "javascript/timing/rule-possible-timing-attacks.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "javascript_xss_rule-mustache-escape",
+      "source_area": "javascript",
+      "source_file": "javascript/xss/rule-mustache-escape.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "go_blocklist_rule-blocklist-des",
+      "source_area": "go",
+      "source_file": "go/blocklist/rule-blocklist-des.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_blocklist_rule-blocklist-md5",
+      "source_area": "go",
+      "source_file": "go/blocklist/rule-blocklist-md5.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_blocklist_rule-blocklist-rc4",
+      "source_area": "go",
+      "source_file": "go/blocklist/rule-blocklist-rc4.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_blocklist_rule-blocklist-sha1",
+      "source_area": "go",
+      "source_file": "go/blocklist/rule-blocklist-sha1.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_crypto_rule-badtlssettings",
+      "source_area": "go",
+      "source_file": "go/crypto/rule-badtlssettings.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_crypto_rule-insecure-ignore-host-key",
+      "source_area": "go",
+      "source_file": "go/crypto/rule-insecure-ignore-host-key.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_crypto_rule-tlsversion",
+      "source_area": "go",
+      "source_file": "go/crypto/rule-tlsversion.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: License: MIT (c) GitLab Inc."
+        }
+      ],
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true
+    },
+    {
+      "id": "go_crypto_rule-weakkeystrength",
+      "source_area": "go",
+      "source_file": "go/crypto/rule-weakkeystrength.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_crypto_rule-weakrandsource",
+      "source_area": "go",
+      "source_file": "go/crypto/rule-weakrandsource.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_file-permissions_rule-fileperm",
+      "source_area": "go",
+      "source_file": "go/file_permissions/rule-fileperm.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_file-permissions_rule-mkdir",
+      "source_area": "go",
+      "source_file": "go/file_permissions/rule-mkdir.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_filesystem_rule-decompression-bomb",
+      "source_area": "go",
+      "source_file": "go/filesystem/rule-decompression-bomb.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_filesystem_rule-fileread",
+      "source_area": "go",
+      "source_file": "go/filesystem/rule-fileread.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_filesystem_rule-httprootdir",
+      "source_area": "go",
+      "source_file": "go/filesystem/rule-httprootdir.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_filesystem_rule-poorwritepermissions",
+      "source_area": "go",
+      "source_file": "go/filesystem/rule-poorwritepermissions.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_filesystem_rule-tempfiles",
+      "source_area": "go",
+      "source_file": "go/filesystem/rule-tempfiles.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_filesystem_rule-ziparchive",
+      "source_area": "go",
+      "source_file": "go/filesystem/rule-ziparchive.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_http_rule-http-serve",
+      "source_area": "go",
+      "source_file": "go/http/rule-http-serve.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_injection_rule-ssrf",
+      "source_area": "go",
+      "source_file": "go/injection/rule-ssrf.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_injection_rule-template-injection",
+      "source_area": "go",
+      "source_file": "go/injection/rule-template-injection.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_leak_rule-pprof-endpoint",
+      "source_area": "go",
+      "source_file": "go/leak/rule-pprof-endpoint.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_memory_rule-integer-overflow",
+      "source_area": "go",
+      "source_file": "go/memory/rule-integer-overflow.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_memory_rule-memoryaliasing",
+      "source_area": "go",
+      "source_file": "go/memory/rule-memoryaliasing.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_network_rule-bind-to-all-interfaces",
+      "source_area": "go",
+      "source_file": "go/network/rule-bind-to-all-interfaces.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_sql_rule-concat-sqli",
+      "source_area": "go",
+      "source_file": "go/sql/rule-concat-sqli.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_subproc_rule-subproc",
+      "source_area": "go",
+      "source_file": "go/subproc/rule-subproc.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "go_unsafe_rule-unsafe",
+      "source_area": "go",
+      "source_file": "go/unsafe/rule-unsafe.yml",
+      "source_license_lines": [
+        {
+          "line": 2,
+          "text": "# License: Apache 2.0 (c) gosec"
+        }
+      ],
+      "normalized": [
+        "Apache-2.0"
+      ],
+      "injected_metadata_license": "Apache-2.0",
+      "consistent": true
+    },
+    {
+      "id": "dolphin.hardcoded-credentials",
+      "source_area": "dolphin-self",
+      "source_file": "rules/dolphin-core.yml.bak（开源版 0.2.5，882 B）",
+      "source_sha256": "d203ca173cd0e1ee4aef14fcab5333ec1e207d0ef032cb7bb4184d69b0ab71d5",
+      "source_provenance": [
+        "github.com/ccr-wer/dsh-dolphin-security@33d10f2e51e51bd0cb2c9dd156e740e160778c8b rules/dolphin-core.yml",
+        "npm registry: dsh-dolphin-security@0.2.5 发布包内 rules/dolphin-core.yml",
+        "不涉及上游商业资产目录（脚本内置路径守卫）"
+      ],
+      "source_license_lines": [],
+      "license_basis": "仓库根 LICENSE = MIT License, Copyright (c) 2026 Dolphin Contributors；原文件无逐条 license 声明行，合并时注入 metadata.license: MIT",
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true,
+      "detection_logic_modified": false,
+      "added_by": "merge_restore_cwe798 (2026-09-22)"
+    }
+  ],
+  "verification": {
+    "license_audit": {
+      "tool": "auditRulesCompliance() @ rules-license.js (真实实现)",
+      "result": "通过",
+      "allowed": [
+        "rules/dolphin-core.yml"
+      ],
+      "blocked": [],
+      "detected_licenses": [
+        "MIT",
+        "Apache-2.0"
+      ],
+      "normalized": [
+        "MIT",
+        "Apache-2.0"
+      ]
+    },
+    "semgrep_validate": {
+      "result": "通过",
+      "errors": 0,
+      "rules": 161
+    },
+    "selftest": {
+      "target": "上游配套 python 样例目录",
+      "hits": 464,
+      "rules_triggered": 65,
+      "note": "python 共 68 条规则，65 条命中；充分证明规则集可加载并检出"
+    }
+  },
+  "merge_history": [
+    {
+      "date": "2026-09-22",
+      "action": "restore-rule",
+      "rule_id": "dolphin.hardcoded-credentials",
+      "reason": "恢复 CWE-798 覆盖：GitLab 161 条中无任何 CWE-798 规则",
+      "source_sha256": "d203ca173cd0e1ee4aef14fcab5333ec1e207d0ef032cb7bb4184d69b0ab71d5",
+      "source_whitelist": [
+        "rules/dolphin-core.yml.bak",
+        "remote HEAD 33d10f2"
+      ],
+      "before_total": 161,
+      "after_total": 162
+    }
+  ]
+}

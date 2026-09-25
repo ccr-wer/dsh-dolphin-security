@@ -3,7 +3,7 @@
 // 定位：纯功能型插件 —— 只向 Agent 注册 dolphin_scan / dolphin_patrol 两个工具，
 // 不含任何 UI / client 半区（无 dsh.client、无侧边栏、无设置面板）。
 //
-// 架构约定（与 D:\Dolphin\docs\DSH_UI_RECON_REPORT.md 第六节一致）：
+// 架构约定（与 docs/DSH_UI_RECON_REPORT.md 第六节一致）：
 //   - 本文件是唯一依赖 Cordis 运行时的地方；
 //   - dolphin-patrol.js / dolphin-core.js / dolphin-ssh-core.js 保持零 DSH 依赖，
 //     既可被本适配层调用，也可被外部脚本直接 import（双形态并存）；

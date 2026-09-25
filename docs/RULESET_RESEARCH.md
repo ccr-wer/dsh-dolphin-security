@@ -88,4 +88,4 @@ rules:
 
 ---
 
-*研究者：Dolphin 项目组　·　数据可复现：`semgrep scan --config p/<ruleset> --json --metrics=off D:/Dolphin_Testbed/vulnerable_app`*
+*研究者：Dolphin 项目组　·　数据可复现：`semgrep scan --config p/<ruleset> --json --metrics=off <靶场目录>`*

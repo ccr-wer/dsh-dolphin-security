@@ -1,12 +1,11 @@
 # SSH 融合侦察报告 —— dsh-ssh
 
-侦察对象：D:\Dolphin\dsh-web\packages\dsh-ssh
+侦察对象：dsh-web/packages/dsh-ssh（当时的工作区快照）
 包标识：@linxin666/dsh-ssh v0.3.6
 侦察时间：2026-08-31
 侦察方式：全量源码通读（src/ 下 4,331 行，含 engine/ 与 client/ 子模块）+ npm registry 依赖核实
 
-注意：本仓库根目录无 .gitignore，本文件落在 D:\Dolphin\ 下会被 git status 捕获。
-如需保持工作区纯净，请自行加入 .gitignore 或阅后删除。
+注意：本报告依当时的工作区快照撰写，路径统一以相对形式记述，不反映任何特定机器的目录结构。
 
 ---
 

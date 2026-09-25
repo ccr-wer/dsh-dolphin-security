@@ -7,7 +7,7 @@
 > 将渗透测试方法论（信息收集 → 漏洞探测 → 利用验证 → 报告）转化为**主动防御巡检流程**，填补 DSH 生态中"主动防御巡检"的空白。
 > 不再被动等告警，而是像海豚巡游一样，定期、主动地对目标主机做安全扫描与评估。
 
-当前版本：**v0.2.5**（修正 `peerDependencies` 中 `@deepseek-ai/dsh-tools` 的版本范围声明——prerelease 仅在相同版本元组内匹配，旧范围在启用严格 peer 校验时会装配失败；新范围对齐并覆盖 DSH 0.1.5 系列）
+当前版本：**v0.2.6**（内置规则集由 1 条扩至 162 条——GitLab SAST Rules 161 条 + 自研 CWE-798 1 条；`check_id` 路径前缀归一化；便携包备包平台硬闸门；部署错误信息与 venv 残留清理修复）
 
 ---
 
@@ -163,7 +163,7 @@ node dolphin-patrol.js --patrol server01 /srv/app
 所有扫描结果统一映射为 **SecurityFinding** 数据模型，自动存档为 JSON 报告：
 
 ```
-D:\Dolphin\reports\
+<插件目录>\reports\
 ├── patrol-local-20260831-223652.json      # 本地扫描报告
 ├── patrol-server01-20260901-200652.json   # 远程巡逻报告
 └── dolphin-report-*.md / *.json           # dolphin-core 生成的报告
@@ -227,6 +227,7 @@ Dolphin 采用「眼睛 + 手脚 + 大脑」三层架构：
 | dsh-web（dsh-ssh 子包） | Apache-2.0 | 提供 SSH/SFTP 能力，独立封装为 `dolphin-ssh-core.js` |
 | ssh2 | MIT | 底层 SSH 协议库 |
 | semgrep | LGPL-2.1 | 开源静态分析引擎 |
+| GitLab SAST Rules | MIT | 开源版规则集来源（java/python/javascript/go 共 161 条，其中 go/ 下 26 条为 gosec 的 Apache-2.0） |
 
 本项目自身采用 **MIT** 协议发布。
 
@@ -247,16 +248,16 @@ Dolphin 采用「眼睛 + 手脚 + 大脑」三层架构：
 
 ### 安装 DSH 插件时遇到 pnpm 报错怎么办
 
-**报错现象**（在 `D:\DSH` 上通过 `dsh plugin --profile web add dsh-dolphin-security` 安装时可能出现）：
+**报错现象**（在 DSH home 目录下通过 `dsh plugin --profile web add dsh-dolphin-security` 安装时可能出现）：
 
 ```
 [ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: ssh2@1.17.0, cpu-features@0.0.10
-dsh: pnpm failed in profile directory D:\DSH\profiles\web
+dsh: pnpm failed in profile directory <DSH_HOME>\profiles\web
 ```
 
 **根因**：pnpm 出于安全策略，默认不允许依赖包执行构建脚本（build scripts），从而拒绝了 `ssh2` 与 `cpu-features` 正常编译，导致 pnpm 以非零状态退出、dsh 认为插件安装失败（依赖已写入但 bundle 未注册）。
 
-**解决办法**：进入 DSH 的 profile 目录（如 `D:\DSH\profiles\web`，即 `pnpm-workspace.yaml` 所在目录），执行：
+**解决办法**：进入 DSH 的 profile 目录（如 `<DSH_HOME>\profiles\web`，即 `pnpm-workspace.yaml` 所在目录），执行：
 
 ```bash
 pnpm approve-builds --all
