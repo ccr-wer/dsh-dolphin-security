@@ -3,6 +3,16 @@
 本项目的所有重要变更都记录在此文件中。
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### 修复 / Fixed
+- **LICENSE 拆分为标准 MIT + 独立第三方声明，修复 GitHub 许可证识别失败**：此前 `LICENSE` 在标准 MIT 正文（21 行）之后**追加**了 "Third-party notices" 段，GitHub 的许可证识别器因模板尾部存在多余内容而判定为 `NOASSERTION`（npm 侧始终显示 MIT，两边不一致）。现 `LICENSE` 仅保留标准 MIT 全文（21 行 / 1077 B，与官方模板逐行一致），第三方声明移入新增的 `THIRD_PARTY_NOTICES.md`。**许可义务无任何减损**：MIT 与 Apache-2.0 要求保留的版权与许可声明仍完整保留，`THIRD_PARTY_LICENSES/` 目录内的许可证原文继续随包分发。
+- **补齐第三方声明的遗漏项**：原声明只列出 dsh-code-scan（MIT）与 dsh-web（Apache-2.0）两项，**遗漏了规则集的实际主体来源** —— GitLab SAST Rules（java/python/javascript 共 135 条 MIT）与 securego/gosec（go/ 共 26 条 Apache-2.0）。现已在 `THIRD_PARTY_NOTICES.md` 中补全为 4 项，并附许可证构成表与 Apache-2.0 合规说明（保留声明、随附原文、未用商标、已记录修改痕迹）。
+
+### 变更 / Changed
+- `package.json` 的 `files[]` 加入 `THIRD_PARTY_NOTICES.md`（自下一个版本的 npm 包起随包分发）。
+- 仓库侧维护（不涉及代码，不触发发版）：补建 `v0.2.1` tag（此前遗漏，对应提交 `2b6f894`）与 `v0.2.1`~`v0.2.6` 六个 GitHub Release；仓库 `description` 补充英文便于检索，`homepage` 指向 npm 包页面。
+
 ## [0.2.6] — 2026-09-25
 
 ### 新增 / Added
