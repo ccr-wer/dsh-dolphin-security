@@ -1,6 +1,6 @@
 {
   "name": "dsh-dolphin-security",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "type": "module",
   "main": "./index.js",
   "exports": {
@@ -58,11 +58,11 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-tools": "^0.1.5-rc.1"
+    "@deepseek-ai/dsh-tools": "^0.1.5-rc.1 || ^0.2.0-rc.2"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-tools": "^0.1.5-rc.1"
+    "@deepseek-ai/dsh-tools": "^0.1.5-rc.1 || ^0.2.0-rc.2"
   },
   "repository": {
     "type": "git",

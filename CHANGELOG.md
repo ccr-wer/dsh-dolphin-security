@@ -5,13 +5,23 @@
 
 ## [Unreleased]
 
+## [0.2.7] — 2026-10-11
+
 ### 修复 / Fixed
+- **桌面端（DSH 0.2.0-rc.2）插件准入拦截**：安装本插件时被 `evaluatePluginCompatibility()` 判定为不兼容，报 `peerDependencies {"@deepseek-ai/dsh-tools":"^0.1.5-rc.1"}`。
+  **真实根因与"预发布版本只在同一版本元组内匹配"无关**（实测 `0.1.5-rc.2` 满足 `^0.1.5-rc.1` 为真）。DSH 的准入校验是把 `@deepseek-ai/dsh` 与 `@deepseek-ai/dsh-*` 的 peer 范围与**运行时版本**（`getDshRuntimeVersion()`，即 app-boot 包版本）比对，**而不是与 peer 包自身的版本比对**；桌面运行时为 `0.2.0-rc.2`，而 `^0.1.5-rc.1` 展开为 `>=0.1.5-rc.1 <0.2.0-0`，上界越出 → 判定不兼容。
+  现把范围改为 `^0.1.5-rc.1 || ^0.2.0-rc.2`，显式覆盖 Web/CLI（`0.1.5-rc.x`）与桌面（`0.2.0-rc.x`）两条运行时线。
 - **LICENSE 拆分为标准 MIT + 独立第三方声明，修复 GitHub 许可证识别失败**：此前 `LICENSE` 在标准 MIT 正文（21 行）之后**追加**了 "Third-party notices" 段，GitHub 的许可证识别器因模板尾部存在多余内容而判定为 `NOASSERTION`（npm 侧始终显示 MIT，两边不一致）。现 `LICENSE` 仅保留标准 MIT 全文（21 行 / 1077 B，与官方模板逐行一致），第三方声明移入新增的 `THIRD_PARTY_NOTICES.md`。**许可义务无任何减损**：MIT 与 Apache-2.0 要求保留的版权与许可声明仍完整保留，`THIRD_PARTY_LICENSES/` 目录内的许可证原文继续随包分发。
 - **补齐第三方声明的遗漏项**：原声明只列出 dsh-code-scan（MIT）与 dsh-web（Apache-2.0）两项，**遗漏了规则集的实际主体来源** —— GitLab SAST Rules（java/python/javascript 共 135 条 MIT）与 securego/gosec（go/ 共 26 条 Apache-2.0）。现已在 `THIRD_PARTY_NOTICES.md` 中补全为 4 项，并附许可证构成表与 Apache-2.0 合规说明（保留声明、随附原文、未用商标、已记录修改痕迹）。
 
 ### 变更 / Changed
-- `package.json` 的 `files[]` 加入 `THIRD_PARTY_NOTICES.md`（自下一个版本的 npm 包起随包分发）。
+- `peerDependencies` 与 `devDependencies` 中的 `@deepseek-ai/dsh-tools` 同步放宽为 `^0.1.5-rc.1 || ^0.2.0-rc.2`。
+- **`@deepseek-ai/cordis` 范围刻意保持 `^4.0.1` 不变**：准入校验只检查 `@deepseek-ai/dsh` 与 `@deepseek-ai/dsh-*` 前缀，`@deepseek-ai/cordis` 从不参与判定；且 `^4.0.1` 已覆盖桌面端实际提供的 `4.0.4` 与本机共享层的 `4.0.2`，改动不产生任何效果。
+- `package.json` 的 `files[]` 加入 `THIRD_PARTY_NOTICES.md`（自本版本的 npm 包起随包分发）。
 - 仓库侧维护（不涉及代码，不触发发版）：补建 `v0.2.1` tag（此前遗漏，对应提交 `2b6f894`）与 `v0.2.1`~`v0.2.6` 六个 GitHub Release；仓库 `description` 补充英文便于检索，`homepage` 指向 npm 包页面。
+
+### 说明 / Notes
+- **兼容性为实测结论，非仅声明**：桌面端运行时 `0.2.0-rc.2` 内置的 `desktop-runtime.json` 声明 287 个共享包（其中 279 个锁 `0.2.0-rc.2`），实际提供 `@deepseek-ai/dsh-tools` **0.2.0-rc.2** 与 `@deepseek-ai/cordis` **4.0.4**。实测 `@deepseek-ai/dsh-tools` 的 `0.1.5-rc.2` 与 `0.2.0-rc.2` 导出面**逐符号一致（23/23）**，且以 `0.2.0-rc.2` 加载本插件 `index.js` 时 `apply()` 正常执行、`dolphin_scan` 与 `dolphin_patrol` 均成功注册。
 
 ## [0.2.6] — 2026-09-25
 
