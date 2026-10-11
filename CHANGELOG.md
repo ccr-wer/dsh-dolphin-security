@@ -8,9 +8,9 @@
 ## [0.2.8] — 2026-10-11
 
 ### 说明 / Notes
-- **本版本与 0.2.7 的代码逐字节相同，是一次纯粹的重新发布（re-release）**，不包含任何功能、规则集或依赖变更；唯一差异是 `package.json` 中的 `version` 字段（`0.2.7` → `0.2.8`）。
+- **本版本与 0.2.7 的代码逐字节相同，是一次纯粹的重新发布（re-release）**，不包含任何功能、规则集或依赖变更；差异**仅在版本元数据**——`package.json` 的 `version` 字段（`0.2.7` → `0.2.8`）与 `README.md` / `README_EN.md` 的版本行。
 - **重发原因**：0.2.7 这个版本号在 npm registry 上被一条**未批准的暂存发布记录（staged publish）**占用。此前为适配本机 npm CLI 版本与 token 权限，0.2.7 曾以 `npm stage publish` 送入暂存区（stage id `9d7d7fa7-0679-4588-9a17-a09ffd5f5770`），而 `npm stage approve` 与 `npm stage reject` **均强制要求交互式 2FA**（token 上的 `Bypass 2FA` 对这两步不生效），无法在无人值守下清除。随后直接发布 0.2.7 会被 registry 以 `E409 Conflict — Cannot publish over previously staged version "0.2.7"` 拒绝，故新开 0.2.8 版本号发布。
-- **与 0.2.7 的功能等价性可验证**：`npm pack` 产物与 0.2.7 的 tarball 完全一致 —— **21 个文件 / 145.9 kB / shasum `92342566b7601722df9f14e56939752bad991481`**。因此 0.2.7 的全部修复内容（桌面端插件准入、LICENSE 标准化）同样适用于本版本。
+- **与 0.2.7 的功能等价性可验证**：全部**代码与规则集文件逐字节相同**（`index.js`、`dolphin-core.js`、`dolphin-patrol.js`、`dolphin-ssh-core.js`、`dsh-code-scan/`、`rules/dolphin-core.yml`）；tarball 的差异**仅来自元数据**——`package.json` 的 `version` 字段与 `README.md` / `README_EN.md` 的版本行。0.2.8 的 `npm pack` 产物为 **21 个文件 / 146.1 kB / shasum `ad6df7baddd0b36cce21ff1a189e29481673a127`**（0.2.7 为 21 文件 / 145.9 kB / shasum `92342566b7601722df9f14e56939752bad991481`）。因此 0.2.7 的全部修复内容（桌面端插件准入、LICENSE 标准化）同样适用于本版本。
 - **遗留项**：npm 上那条 0.2.7 暂存记录尚未清除（需人工 2FA 执行 `npm stage reject 9d7d7fa7-0679-4588-9a17-a09ffd5f5770`），在此之前 0.2.7 版本号不可用。该记录**不影响**已发布版本，也不影响 `latest` 标签指向。
 
 ### 变更 / Changed
