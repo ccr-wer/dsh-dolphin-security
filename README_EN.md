@@ -7,7 +7,7 @@
 > Transforming the penetration-testing methodology (Reconnaissance → Vulnerability Detection → Exploitation Validation → Reporting) into a **proactive defense patrol workflow**.
 > Instead of waiting passively for alerts, Dolphin patrols your hosts on schedule — the way a dolphin swims its route.
 
-Current release: **v0.2.7** (fixes plugin admission on DSH desktop 0.2.0-rc.2 — the `@deepseek-ai/dsh-tools` peer range is widened from `^0.1.5-rc.1` to `^0.1.5-rc.1 || ^0.2.0-rc.2`, covering both the Web/CLI and desktop runtime lines; `LICENSE` is split into the standard MIT text plus a separate `THIRD_PARTY_NOTICES.md`, fixing GitHub's NOASSERTION detection. The built-in ruleset remains 162 rules, see v0.2.6)
+Current release: **v0.2.8** (byte-for-byte identical to v0.2.7 — this is a **re-release**: the v0.2.7 version number is held by an unapproved staged publish record on npm, whose removal requires interactive 2FA, so a new version number was issued. All v0.2.7 fixes are included: fixes plugin admission on DSH desktop 0.2.0-rc.2 — the `@deepseek-ai/dsh-tools` peer range is widened from `^0.1.5-rc.1` to `^0.1.5-rc.1 || ^0.2.0-rc.2`, covering both the Web/CLI and desktop runtime lines; `LICENSE` is split into the standard MIT text plus a separate `THIRD_PARTY_NOTICES.md`, fixing GitHub's NOASSERTION detection. The built-in ruleset remains 162 rules, see v0.2.6)
 
 [简体中文](./README.md) | [English](./README_EN.md)
 
