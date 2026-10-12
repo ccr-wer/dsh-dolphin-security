@@ -5,6 +5,23 @@
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-10-12
+
+### 新增 / Added
+- **规则集：162 条 → 165 条（靶场缺口补强，离线可用）**：以扩展既有 `dolphin.hardcoded-credentials`（CWE-798）+ 3 条自研 MIT Node.js 规则补齐靶场实测漏检点，全部随包分发（`rules/dolphin-core.yml`），不依赖 semgrep registry，不引入 `p/*`。
+  - **扩展 `dolphin.hardcoded-credentials`（MIT）**：在原有密码/密钥正则基础上新增四类匹配——① `secret/api_key/access_key/auth_token` 容 `auth_token_id` 等后缀；② `encryption_key/cipher_key/private_key/signing_key/secret_key` 容字节字面量 `b"…"`；③ URL 内嵌凭据（redis/mongodb/postgres/mysql/… `user:pass@`）；④ GitHub Token（`ghp_/gho_/ghu_/ghs_/ghr_/github_pat_`）。CWE 口径扩至 CWE-798 / CWE-259 / CWE-321。
+  - **新增 `dolphin.node-command-injection`（MIT, CWE-78）**：覆盖 `child_process` 的 `exec/execSync/execFile/execFileSync` 动态命令拼接与模板插值（靶场 server.js:53/65/77 此前漏检——既有 CWE-78 规则仅覆盖 Java/Python）。
+  - **新增 `dolphin.node-code-injection`（MIT, CWE-95）**：覆盖 `new Function(...)` / `Function(...)` 由外部输入拼接或模板插值构成的动态代码执行（靶场 server.js:42 此前漏检——既有 eval 规则只匹配 `eval("..."+x)` 形态）。
+  - **新增 `dolphin.node-innerhtml-xss`（MIT, CWE-79）**：覆盖 `el.innerHTML =` 由不可信内容（含双引号串内 `${…}` 插值这一特殊形态）直接赋值（靶场 server.js:94 此前漏检——既有 XSS 规则仅覆盖 Java/React `dangerouslySetInnerHTML`/mustache）。
+- **第三方 MIT 源评估结论**：Apiiro `malicious-code-ruleset`（MIT）与本靶场增量 0 命中且会误报（`eval-Function.yml` 为裸 token 匹配、与现有规则重复；`system.yml` 仅匹配 `node -e`）；elttam `semgrep-rules`（MIT）无 JavaScript 规则目录。二者均未引入，缺口改由扩展 + 自研覆盖。
+
+### 验证 / Verified
+- `semgrep --validate`：**0 错误**，165 条规则。
+- `rules-license.js` 闸门：**PASS**（仅 MIT 139 + Apache-2.0 26 声明，0 拦截）。
+- 许可证分布：**MIT 139 / Apache-2.0 26 = 165**（全程未引 `p/*`，规则随包 `rules/dolphin-core.yml` 分发，已在 `files[]`）。
+- **靶场重测对比**：总检出 13 → **23**；config.py（CWE-798）7 → **12**（新增 AKIA / ghp_ / 字节密钥 / redis / mongo URL 凭据）；server.js 1 → **6**（eval + new Function + 3×exec/execSync + innerHTML）；app.py 5 不变。安全对照组（server.js:108 `spawn` 数组写法、config.py:77-79 `os.environ.get`）**零误报**。
+- 隐私清查：仓库内容（含 `rules/dolphin-core.yml`、`dolphin-ssh-core.js`）无真实 token / 个人隐私 / 真实主机信息；所有命中的 IP、邮箱、密钥串均为上游规则示例与自测桩（`not-a-real-password`、占位 `-----BEGIN OPENSSH PRIVATE KEY-----\n(self-test fixture)`），无泄露。
+
 ## [0.2.8] — 2026-10-11
 
 ### 说明 / Notes

@@ -1,23 +1,23 @@
 {
-  "generated": "2026-09-22",
+  "generated": "2026-10-12",
   "upstream": "https://gitlab.com/gitlab-org/security-products/sast-rules",
   "upstream_commit": "53bf5cf6df3c51b6c02110f5a638b5e6213666cd",
-  "total_rules": 162,
-  "unique_ids": 162,
+  "total_rules": 165,
+  "unique_ids": 165,
   "per_area": {
     "java": 55,
     "python": 68,
     "javascript": 11,
     "go": 27,
-    "dolphin-self": 1
+    "dolphin-self": 4
   },
   "license_summary": {
-    "MIT": 136,
+    "MIT": 139,
     "Apache-2.0": 26
   },
   "output": "rules/dolphin-core.yml",
-  "bytes": 430355,
-  "sha256": "c1c8b96098026729706aa8589164a53b2641259e7b2c16097f36a22a4be7fe0a",
+  "bytes": 443660,
+  "sha256": "68c458d9927b225eef2980cfde90164a8dc302af4de765504ce4ce80accdac41",
   "inconsistent_count": 0,
   "rules": [
     {
@@ -2613,8 +2613,66 @@
       ],
       "injected_metadata_license": "MIT",
       "consistent": true,
+      "detection_logic_modified": true,
+      "added_by": "merge_restore_cwe798 (2026-09-22); extended 2026-10-12 (AWS/GitHub/URL-cred/byte-key)",
+      "cwe": null
+    },
+    {
+      "id": "dolphin.node-code-injection",
+      "source_area": "dolphin-self",
+      "source_file": "rules/dolphin-core.yml（自研，2026-10-12 新增）",
+      "source_sha256": null,
+      "source_provenance": [
+        "self-developed (2026-10-12)，无上游来源",
+        "针对靶场 server.js:42 new Function(...) 缺口调优"
+      ],
+      "source_license_lines": [],
+      "license_basis": "自研规则；仓库根 LICENSE = MIT License, Copyright (c) 2026 Dolphin Contributors；注入 metadata.license: MIT",
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true,
       "detection_logic_modified": false,
-      "added_by": "merge_restore_cwe798 (2026-09-22)"
+      "added_by": "rule-gap-fill (2026-10-12)"
+    },
+    {
+      "id": "dolphin.node-command-injection",
+      "source_area": "dolphin-self",
+      "source_file": "rules/dolphin-core.yml（自研，2026-10-12 新增）",
+      "source_sha256": null,
+      "source_provenance": [
+        "self-developed (2026-10-12)，无上游来源",
+        "针对靶场 server.js:53/65/77 exec/execSync 缺口调优"
+      ],
+      "source_license_lines": [],
+      "license_basis": "自研规则；仓库根 LICENSE = MIT License, Copyright (c) 2026 Dolphin Contributors；注入 metadata.license: MIT",
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true,
+      "detection_logic_modified": false,
+      "added_by": "rule-gap-fill (2026-10-12)"
+    },
+    {
+      "id": "dolphin.node-innerhtml-xss",
+      "source_area": "dolphin-self",
+      "source_file": "rules/dolphin-core.yml（自研，2026-10-12 新增）",
+      "source_sha256": null,
+      "source_provenance": [
+        "self-developed (2026-10-12)，无上游来源",
+        "针对靶场 server.js:94 el.innerHTML = 缺口调优（含双引号串内 ${...} 插值形态）"
+      ],
+      "source_license_lines": [],
+      "license_basis": "自研规则；仓库根 LICENSE = MIT License, Copyright (c) 2026 Dolphin Contributors；注入 metadata.license: MIT",
+      "normalized": [
+        "MIT"
+      ],
+      "injected_metadata_license": "MIT",
+      "consistent": true,
+      "detection_logic_modified": false,
+      "added_by": "rule-gap-fill (2026-10-12)"
     }
   ],
   "verification": {

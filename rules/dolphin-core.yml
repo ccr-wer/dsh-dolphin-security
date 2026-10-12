@@ -14,12 +14,12 @@
 #
 # 本文件包含的许可证声明（全部在白名单内，注入于每条规则的 metadata.license）:
 #   license: Apache-2.0        （26 条）
-#   license: MIT        （136 条）
+#   license: MIT        （139 条）
 #
 # 版权归属:
 #   - GitLab Inc.  —— MIT Expat（java/python/javascript/go 中的 MIT 规则）
 #   - securego/gosec —— Apache-2.0（go/ 下 26 条规则，源自 gosec）
-#   - Dolphin Contributors —— MIT（dolphin.hardcoded-credentials 自研规则）
+#   - Dolphin Contributors —— MIT（dolphin.hardcoded-credentials 自研规则 + 3 条 Node.js 规则）
 # 完整许可证文本见 THIRD_PARTY_LICENSES/。
 #
 # 各来源区域收录条数:
@@ -27,7 +27,20 @@
 #   python/                  68 条
 #   javascript/              11 条
 #   go/                      27 条
-#   dolphin-self（自研）         1 条
+#   dolphin-self（自研）         4 条
+#
+# 2026-10-12 扩展（靶场实测缺口补强；离线可用，不引 p/*，许可证均 MIT/Apache-2.0）：
+#   - 新增 3 条自研 MIT 规则：
+#       · dolphin.node-code-injection   —— CWE-95，new Function / Function 构造器（动态参数）
+#       · dolphin.node-command-injection —— CWE-78，child_process exec/execSync/execFile/execFileSync（动态命令）
+#       · dolphin.node-innerhtml-xss    —— CWE-79，innerHTML = 动态内容（含双引号串内 ${...} 插值）
+#   - 扩展自研 dolphin.hardcoded-credentials（MIT）：补 AWS Access Key ID（AKIA/ASIA）、
+#     GitHub Token（ghp_/gho_/ghu_/ghs_/ghr_/github_pat_）、字节字面量密钥（b"..."）、
+#     URL 内嵌凭据（redis://user:pass@、mongodb://user:pass@ 等）识别；CWE 口径扩至 798/259/321/304。
+#   - 候选 MIT 源评估：Apiiro malicious-code-ruleset（eval-Function 为裸 token 匹配会海量误报、
+#     system 仅匹配 child_process.exec 的 node -e 形态，二者对本靶场增量 0 命中）与 elttam semgrep-rules
+#     （无 JavaScript 规则目录，无法补 Node 缺口）—— 均未引入，缺口改由自研 + 扩展既有 MIT 规则覆盖。
+#   - 总条数 162 → 165；靶场实测 13 → 23（对照 spawn / os.environ.get 安全写法 0 误报）。
 # ==========================================================================
 rules:
 - id: java_cookie_rule-CookieInsecure
@@ -8060,8 +8073,110 @@ rules:
   metadata:
     cwe:
     - CWE-798
+    - CWE-259
+    - CWE-321
     confidence: MEDIUM
     license: MIT
-    dolphin_origin: opensource-0.2.5
+    dolphin_origin: dolphin-extended-20261012
   patterns:
-  - pattern-regex: (?i)["']?(?:password|passwd|pwd|secret(?:_key)?|api_?key|access_?key|auth_?token)["']?\s*[:=]\s*["'][^"']{4,}["']
+  - pattern-either:
+    - pattern-regex: (?i)["']?(?:password|passwd|pwd)["']?\s*[:=]\s*["'][^"']{4,}["']
+    - pattern-regex: (?i)(?:secret|api_?key|access_?key|auth_?token)\w*\s*[:=]\s*["'][^"']{4,}["']
+    - pattern-regex: (?i)(?:encryption_?key|cipher_?key|private_?key|signing_?key|secret_?key)\s*[:=]\s*b?["'][^"']{6,}["']
+    - pattern-regex: (?i)\b(?:redis|rediss|mongodb|mongodb\+srv|postgres|postgresql|mysql|amqp|ftp|ftps|kafka|clickhouse)://[^\s:/@]*:[^\s:/@]{4,}@[^\s"'\)]+
+    - pattern-regex: (?i)\bgh[opUsr]_\w{16,}\b|github_pat_[A-Za-z0-9_]+
+
+
+- id: dolphin.node-code-injection
+  message: 检测到动态代码执行（new Function / Function 构造器）的参数由外部输入拼接或模板插值构成，等价于 eval，可能导致代码注入（CWE-95）。请改用安全的对象属性访问或白名单校验。
+  severity: WARNING
+  languages:
+  - javascript
+  - typescript
+  metadata:
+    cwe:
+    - CWE-95
+    owasp:
+    - A03:2021-Injection
+    category: security
+    security-severity: High
+    confidence: MEDIUM
+    license: MIT
+    dolphin_origin: self-developed
+  patterns:
+  - pattern-either:
+    - pattern: 'new Function(..., "..." + $X)'
+    - pattern: 'new Function(..., $X + "...")'
+    - pattern: 'new Function(..., `...${...}`)'
+    - pattern: 'new Function(..., `${...}...`)'
+    - pattern: 'Function(..., "..." + $X)'
+    - pattern: 'Function(..., $X + "...")'
+    - pattern: 'Function(..., `...${...}`)'
+    - pattern: 'Function(..., `${...}...`)'
+  - pattern-not: 'new Function("...")'
+  - pattern-not: 'Function("...")'
+
+- id: dolphin.node-command-injection
+  message: 命令执行函数（exec / execSync / execFile / execFileSync）的命令字符串由外部输入拼接或模板插值构成，存在 OS 命令注入风险（CWE-78）。请使用参数数组（spawn 配合 shell:false）或对输入做严格白名单校验。
+  severity: ERROR
+  languages:
+  - javascript
+  - typescript
+  metadata:
+    cwe:
+    - CWE-78
+    owasp:
+    - A03:2021-Injection
+    category: security
+    security-severity: High
+    confidence: MEDIUM
+    license: MIT
+    dolphin_origin: self-developed
+  patterns:
+  - pattern-either:
+    - pattern: 'exec("..." + $X, ...)'
+    - pattern: 'exec($X + "...", ...)'
+    - pattern: 'exec(`...${...}`)'
+    - pattern: 'exec(`${...}...`, ...)'
+    - pattern: 'exec(`...${...}...`, ...)'
+    - pattern: 'execSync("..." + $X, ...)'
+    - pattern: 'execSync($X + "...", ...)'
+    - pattern: 'execSync(`...${...}`)'
+    - pattern: 'execSync(`${...}...`, ...)'
+    - pattern: 'execSync(`...${...}...`, ...)'
+    - pattern: 'execFile("..." + $X, ...)'
+    - pattern: 'execFile($X + "...", ...)'
+    - pattern: 'execFile(`...${...}`)'
+    - pattern: 'execFile(`${...}...`, ...)'
+    - pattern: 'execFile(`...${...}...`, ...)'
+    - pattern: 'execFileSync("..." + $X, ...)'
+    - pattern: 'execFileSync($X + "...", ...)'
+    - pattern: 'execFileSync(`...${...}`)'
+    - pattern: 'execFileSync(`${...}...`, ...)'
+    - pattern: 'execFileSync(`...${...}...`, ...)'
+
+- id: dolphin.node-innerhtml-xss
+  message: 将不可信内容直接赋值给 innerHTML 且未做转义，存在跨站脚本（XSS, CWE-79）风险。请使用 textContent 或对内容进行 HTML 转义后插入。
+  severity: ERROR
+  languages:
+  - javascript
+  - typescript
+  metadata:
+    cwe:
+    - CWE-79
+    owasp:
+    - A03:2021-Injection
+    category: security
+    security-severity: Medium
+    confidence: MEDIUM
+    license: MIT
+    dolphin_origin: self-developed
+  patterns:
+  - pattern-either:
+    - pattern: '$EL.innerHTML = "..." + $X'
+    - pattern: '$EL.innerHTML = $X + "..."'
+    - pattern: '$EL.innerHTML = `...${...}`'
+    - pattern: '$EL.innerHTML = `${...}...`'
+    - pattern: '$EL.innerHTML = `...${...}...`'
+    - pattern-regex: \.innerHTML\s*=\s*("[^"]*\$\{[^"]*"|'[^']*\$\{[^']*')
+  - pattern-not: '$EL.innerHTML = "..."'

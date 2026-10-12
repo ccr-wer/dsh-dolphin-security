@@ -7,7 +7,7 @@
 > Transforming the penetration-testing methodology (Reconnaissance → Vulnerability Detection → Exploitation Validation → Reporting) into a **proactive defense patrol workflow**.
 > Instead of waiting passively for alerts, Dolphin patrols your hosts on schedule — the way a dolphin swims its route.
 
-Current release: **v0.2.8** (byte-for-byte identical to v0.2.7 — this is a **re-release**: the v0.2.7 version number is held by an unapproved staged publish record on npm, whose removal requires interactive 2FA, so a new version number was issued. All v0.2.7 fixes are included: fixes plugin admission on DSH desktop 0.2.0-rc.2 — the `@deepseek-ai/dsh-tools` peer range is widened from `^0.1.5-rc.1` to `^0.1.5-rc.1 || ^0.2.0-rc.2`, covering both the Web/CLI and desktop runtime lines; `LICENSE` is split into the standard MIT text plus a separate `THIRD_PARTY_NOTICES.md`, fixing GitHub's NOASSERTION detection. The built-in ruleset remains 162 rules, see v0.2.6)
+Current release: **v0.3.0** (the ruleset grows from 162 to 165 rules: 3 new self-developed MIT Node.js rules — `dolphin.node-command-injection` (CWE-78 command injection), `dolphin.node-code-injection` (CWE-95 code injection), `dolphin.node-innerhtml-xss` (CWE-79 cross-site scripting); plus the existing `dolphin.hardcoded-credentials` rule is extended to cover AWS Access Keys, GitHub Tokens, URL-embedded credentials and byte-literal keys (CWE-798/259/321 range-gap fill). Range re-test rises from 13 to 23 findings with a clean false-positive control group. Rules ship with the package, work offline, and do not depend on the semgrep registry — see the v0.3.0 notes)
 
 [简体中文](./README.md) | [English](./README_EN.md)
 

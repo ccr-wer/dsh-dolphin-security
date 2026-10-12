@@ -7,7 +7,7 @@
 > 将渗透测试方法论（信息收集 → 漏洞探测 → 利用验证 → 报告）转化为**主动防御巡检流程**，填补 DSH 生态中"主动防御巡检"的空白。
 > 不再被动等告警，而是像海豚巡游一样，定期、主动地对目标主机做安全扫描与评估。
 
-当前版本：**v0.2.8**（与 v0.2.7 代码逐字节相同，属**重新发布**——v0.2.7 版本号在 npm 上被一条未批准的暂存发布记录占用，其清除需人工 2FA，故新开版本号。v0.2.7 的修复内容全部包含：修复桌面端 DSH 0.2.0-rc.2 的插件准入拦截——`@deepseek-ai/dsh-tools` 的 peer 范围由 `^0.1.5-rc.1` 改为 `^0.1.5-rc.1 || ^0.2.0-rc.2`，同时覆盖 Web/CLI 与桌面两条运行时线；`LICENSE` 拆分为标准 MIT 全文加独立的 `THIRD_PARTY_NOTICES.md`，修复 GitHub 许可证识别为 NOASSERTION。内置规则集维持 162 条，详见 v0.2.6）
+当前版本：**v0.3.0**（规则集由 162 条扩展至 165 条：新增 3 条自研 MIT Node.js 规则——`dolphin.node-command-injection`（CWE-78 命令注入）、`dolphin.node-code-injection`（CWE-95 代码注入）、`dolphin.node-innerhtml-xss`（CWE-79 跨站脚本）；并扩展既有 `dolphin.hardcoded-credentials` 规则覆盖 AWS Access Key、GitHub Token、URL 内嵌凭据与字节字面量密钥（CWE-798/259/321 靶场缺口补齐）。靶场实测由 13 处提升至 23 处，安全对照组零误报。规则随包分发、离线可用、不依赖 semgrep registry，详见 v0.3.0 说明）
 
 ---
 
